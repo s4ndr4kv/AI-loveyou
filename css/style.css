@@ -380,13 +380,12 @@ button {
     margin-left: clamp(3px, 1vw, 5px);
 }
 
-/* 3D heart: bigger, overflows the line both top and bottom */
+/* 3D heart: bigger than other icons, vertically centered with the line */
 .title-icon-heart {
     height: clamp(44px, 16vw, 64px);
     width: auto;
-    vertical-align: middle;
     align-self: center;
-    margin-top: -0.5em;    /* nudge heart upward a bit */
+    margin-top: -0.25em;   /* nudge up slightly */
 }
 
 /* Arrow: infinite 360° rotation */
