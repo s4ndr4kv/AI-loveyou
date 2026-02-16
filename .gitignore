@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+
+# Original font source folders (fonts are in assets/fonts/)
+/fonts/
+
+# Individual GIF frame PNGs (assembled GIFs are in img/)
+img/heart[0-9]*.png
+img/cat[0-9]*.png
+img/star[0-9]*.png
+
+# ASCII art source
+cherubASCII.txt
+
+# Editor files
+*.swp
+*~

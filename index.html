@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Travel Advisor</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ============ SCREEN 1: INTRO ============ -->
+    <section id="intro-screen" class="screen active">
+        <div class="intro-container">
+
+            <!-- Decorative Background Image -->
+            <img src="img/decorative.png" alt="" aria-hidden="true" class="intro-decorative-img">
+
+            <!-- Title with mixed fonts + decorative icons -->
+            <h1 class="intro-title">
+                <span class="title-line"><span class="t-montreal">O</span><span class="t-neuebit">u</span><span class="t-montreal">r</span><img class="title-icon title-icon-heart" src="img/3dheart.gif" alt="" aria-hidden="true"><img class="title-icon" src="img/cat.gif" alt="" aria-hidden="true"><img class="title-icon" src="img/star.gif" alt="" aria-hidden="true"><img class="title-icon" src="img/smile.png" alt="" aria-hidden="true"></span>
+                <span class="title-line"><span class="t-montreal">I</span><span class="t-neuebit">n</span><span class="t-editorial">cre</span><span class="t-neuebit">dibl</span><span class="t-editorial">e</span><img class="title-icon title-icon-arrow" src="img/arrow.png" alt="" aria-hidden="true"><img class="title-icon" src="img/question.png" alt="" aria-hidden="true"></span>
+                <span class="title-line title-line-slots"><span class="slot t-editorial"><span class="slot-top">H</span><span class="slot-bottom">H</span></span><span class="slot t-neuebit"><span class="slot-top">o</span><span class="slot-bottom">o</span></span><span class="slot t-neuebit"><span class="slot-top">n</span><span class="slot-bottom">n</span></span><span class="slot t-neuebit"><span class="slot-top">e</span><span class="slot-bottom">e</span></span><span class="slot t-neuebit"><span class="slot-top">y</span><span class="slot-bottom">y</span></span><span class="slot t-neuebit"><span class="slot-top">m</span><span class="slot-bottom">m</span></span><span class="slot t-neuebit"><span class="slot-top">o</span><span class="slot-bottom">o</span></span><span class="slot t-editorial"><span class="slot-top">o</span><span class="slot-bottom">o</span></span><span class="slot t-editorial"><span class="slot-top">n</span><span class="slot-bottom">n</span></span></span>
+            </h1>
+
+            <!-- AI Typing Text -->
+            <div class="terminal-block">
+                <p class="terminal-text" id="terminal-text"></p>
+                <span class="cursor" id="typing-cursor">_</span>
+            </div>
+
+            <!-- Start Button -->
+            <button class="btn-start" id="btn-start">
+                <span>&gt;&gt; start</span>
+            </button>
+
+            <!-- Footer -->
+            <footer class="intro-footer">
+                Comit&eacute; de Exploraci&oacute;n y Cultura &copy; 2026
+            </footer>
+        </div>
+    </section>
+
+    <!-- ============ SCREEN 2: QUIZ ============ -->
+    <section id="quiz-screen" class="screen">
+        <div class="quiz-container">
+            <!-- Progress bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <!-- Question number -->
+            <div class="question-number" id="question-number"></div>
+
+            <!-- Card area -->
+            <div class="card-container" id="card-container"></div>
+
+            <!-- Analyzing message -->
+            <div class="analyzing-msg" id="analyzing-msg">
+                <div class="analyzing-msg-text-line">
+                    <span class="analyzing-text"></span>
+                    <span class="analyzing-dots"></span>
+                </div>
+                <div class="analyzing-progress-container">
+                    <div class="analyzing-progress-bar" id="analyzing-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ SCREEN 3: LOADING ============ -->
+    <section id="loading-screen" class="screen">
+        <div class="loading-container">
+            <div class="loading-header">
+                <span class="loading-icon">&gt;_</span>
+                <span>PROCESSING RESULTS</span>
+            </div>
+
+            <div class="loading-messages" id="loading-messages"></div>
+
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar" id="loading-progress-bar"></div>
+            </div>
+
+            <div class="loading-percentage" id="loading-percentage">0%</div>
+        </div>
+    </section>
+
+    <!-- ============ SCREEN 4: REVEAL ============ -->
+    <section id="reveal-screen" class="screen">
+        <div class="reveal-overlay" id="reveal-overlay"></div>
+
+        <canvas id="confetti-canvas"></canvas>
+
+        <div class="reveal-container">
+            <div class="reveal-destination" id="reveal-destination">
+                <h1 class="tokyo-text">TOKYO</h1>
+                <p class="tokyo-subtitle">Your algorithm has spoken. It was always Tokyo.</p>
+            </div>
+
+            <!-- ====== PERSONAL MESSAGE — EDIT HERE ====== -->
+            <div class="reveal-message" id="reveal-message">
+                <p class="message-text">
+                    Your personal message goes here. Write something beautiful for your person.
+                </p>
+            </div>
+            <!-- ====== END PERSONAL MESSAGE ====== -->
+
+            <!-- ====== PHOTOS — ADD YOUR IMAGES HERE ====== -->
+            <div class="reveal-photos" id="reveal-photos">
+                <div class="photo-grid">
+                    <!-- Add your photos like this: -->
+                    <!-- <img src="img/your-photo-1.jpg" alt="Tokyo memory"> -->
+                    <!-- <img src="img/your-photo-2.jpg" alt="Tokyo memory"> -->
+                    <!-- <img src="img/your-photo-3.jpg" alt="Tokyo memory"> -->
+                    <div class="photo-placeholder">
+                        <span>Your photos here</span>
+                    </div>
+                    <div class="photo-placeholder">
+                        <span>Your photos here</span>
+                    </div>
+                    <div class="photo-placeholder">
+                        <span>Your photos here</span>
+                    </div>
+                </div>
+            </div>
+            <!-- ====== END PHOTOS ====== -->
+
+            <div class="reveal-cta" id="reveal-cta">
+                <p class="cta-text">Pack your bags &mdash; round two awaits</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
