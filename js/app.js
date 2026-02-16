@@ -494,6 +494,167 @@ document.addEventListener('DOMContentLoaded', function () {
     // Start on intro screen
     showScreen('intro');
 
+    // === ASCII art: individual char float + density-based opacity + random glow ===
+    var asciiEl = document.querySelector('.intro-ascii-bg');
+    var asciiChars = [];
+    if (asciiEl) {
+        var raw = asciiEl.textContent;
+
+        // Split into lines to calculate neighbor density per char
+        var lines = raw.split('\n');
+        // Build a 2D grid: true = visible char, false = space/empty
+        var grid = [];
+        for (var r = 0; r < lines.length; r++) {
+            var row = [];
+            for (var c = 0; c < lines[r].length; c++) {
+                row.push(lines[r][c] !== ' ');
+            }
+            grid.push(row);
+        }
+
+        // Count neighbors (8 directions) for each cell
+        function countNeighbors(row, col) {
+            var count = 0;
+            for (var dr = -1; dr <= 1; dr++) {
+                for (var dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    var nr = row + dr;
+                    var nc = col + dc;
+                    if (nr >= 0 && nr < grid.length && nc >= 0 && nc < grid[nr].length && grid[nr][nc]) {
+                        count++;
+                    }
+                }
+            }
+            return count; // 0–8
+        }
+
+        var frag = document.createDocumentFragment();
+        var lineIdx = 0;
+        var colIdx = 0;
+
+        for (var i = 0; i < raw.length; i++) {
+            var ch = raw[i];
+            if (ch === '\n') {
+                frag.appendChild(document.createTextNode('\n'));
+                lineIdx++;
+                colIdx = 0;
+            } else if (ch === ' ') {
+                frag.appendChild(document.createTextNode(' '));
+                colIdx++;
+            } else {
+                var neighbors = countNeighbors(lineIdx, colIdx);
+                // Map 0–8 neighbors to opacity 0.3–0.8
+                // More neighbors = core = more opaque
+                var opacity = (0.3 + (neighbors / 8) * 0.5).toFixed(2);
+
+                var span = document.createElement('span');
+                span.className = 'ascii-char';
+                span.textContent = ch;
+                var dur, floatY, floatX;
+
+                // Edge chars (0-2 neighbors): ~5-10% of chars drift much further
+                if (neighbors <= 2 && Math.random() < 0.5) {
+                    dur = (4 + Math.random() * 4).toFixed(2);          // 4–8s (slower, drifty)
+                    floatY = (-8 - Math.random() * 14).toFixed(1);     // -8px to -22px
+                    floatX = (-5 + Math.random() * 10).toFixed(1);     // -5px to +5px
+                } else {
+                    dur = (3 + Math.random() * 4).toFixed(2);
+                    floatY = (-1.5 - Math.random() * 3.5).toFixed(1);
+                    floatX = (-1 + Math.random() * 2).toFixed(1);
+                }
+
+                var delay = (Math.random() * -6).toFixed(2);
+                span.style.cssText = 'opacity:' + opacity + ';--float-dur:' + dur + 's;--float-delay:' + delay + 's;--float-y:' + floatY + 'px;--float-x:' + floatX + 'px';
+                frag.appendChild(span);
+                asciiChars.push(span);
+                colIdx++;
+            }
+        }
+        asciiEl.textContent = '';
+        asciiEl.appendChild(frag);
+
+        // Random glow: 5-6 chars pulse to full opacity every 800ms
+        setInterval(function () {
+            var count = 5 + Math.floor(Math.random() * 2);
+            for (var g = 0; g < count; g++) {
+                var idx = Math.floor(Math.random() * asciiChars.length);
+                var el = asciiChars[idx];
+                el.classList.remove('glow');
+                void el.offsetWidth;
+                el.classList.add('glow');
+            }
+        }, 800);
+
+        asciiEl.addEventListener('animationend', function (e) {
+            if (e.animationName === 'charGlow') {
+                e.target.classList.remove('glow');
+            }
+        });
+
+        // === Loose floating symbol clusters — scattered across the viewport ===
+        var looseSymbols = [];
+        var symbolChars = ['*', '#', '+', '=', '-'];
+        var introScreen = document.getElementById('intro-screen');
+
+        // 7 cluster positions spread across the viewport
+        var clusterCenters = [
+            { x: 8,  y: 12 },
+            { x: 85, y: 8  },
+            { x: 12, y: 55 },
+            { x: 78, y: 45 },
+            { x: 45, y: 6  },
+            { x: 90, y: 75 },
+            { x: 5,  y: 85 }
+        ];
+
+        for (var ci = 0; ci < clusterCenters.length; ci++) {
+            var cx = clusterCenters[ci].x;
+            var cy = clusterCenters[ci].y;
+            var clusterSize = 2 + Math.floor(Math.random() * 2); // 2–3 symbols per cluster
+
+            for (var si = 0; si < clusterSize; si++) {
+                var sym = document.createElement('span');
+                sym.className = 'loose-symbol';
+                sym.textContent = symbolChars[Math.floor(Math.random() * symbolChars.length)];
+
+                // Position near cluster center with small offset (±3%)
+                var posX = (cx + (-3 + Math.random() * 6)).toFixed(1);
+                var posY = (cy + (-3 + Math.random() * 6)).toFixed(1);
+                var looseOpacity = (0.15 + Math.random() * 0.18).toFixed(2);
+                var looseDur = (4 + Math.random() * 6).toFixed(2);
+                var looseDelay = (Math.random() * -8).toFixed(2);
+                var looseY = (-8 - Math.random() * 16).toFixed(1);
+                var looseX = (-5 + Math.random() * 10).toFixed(1);
+                // Random size variation: 0.6× to 1.6× base size
+                var looseScale = (0.6 + Math.random() * 1.0).toFixed(2);
+
+                sym.style.cssText = 'left:' + posX + '%;top:' + posY + '%;opacity:' + looseOpacity +
+                    ';font-size:calc(clamp(5px, 1.4vw, 9px) * ' + looseScale + ')' +
+                    ';--float-dur:' + looseDur + 's;--float-delay:' + looseDelay +
+                    's;--float-y:' + looseY + 'px;--float-x:' + looseX + 'px';
+
+                introScreen.appendChild(sym);
+                looseSymbols.push(sym);
+            }
+        }
+
+        // Include loose symbols in the glow cycle
+        setInterval(function () {
+            var idx = Math.floor(Math.random() * looseSymbols.length);
+            var el = looseSymbols[idx];
+            el.classList.remove('glow');
+            void el.offsetWidth;
+            el.classList.add('glow');
+        }, 1200);
+
+        // Clean up glow on loose symbols
+        introScreen.addEventListener('animationend', function (e) {
+            if (e.animationName === 'charGlow' && e.target.classList.contains('loose-symbol')) {
+                e.target.classList.remove('glow');
+            }
+        });
+    }
+
     // Slot machine animation on Honeymoon letters — flip forward, then back, repeat
     var slots = document.querySelectorAll('.title-line-slots .slot');
     var STAGGER = 100;          // ms between each letter

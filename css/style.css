@@ -254,18 +254,68 @@ button {
     position: relative;
 }
 
-/* Decorative Background Image */
-.intro-decorative-img {
+/* Decorative ASCII Art — bottom-right of intro screen */
+
+@keyframes charFloat {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+    }
+    50% {
+        transform: translateY(var(--float-y, -6px)) translateX(var(--float-x, 2px));
+    }
+}
+
+@keyframes charGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.intro-ascii-bg {
     position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 90vw;
-    max-height: 50vh;
-    object-fit: contain;
+    bottom: 20px;
+    right: 20px;
+    font-family: monospace;
+    font-size: clamp(4px, 1.26vw, 7px);
+    line-height: 1.1;
+    color: var(--color-red);
+    opacity: 1;
     pointer-events: none;
     z-index: 0;
     user-select: none;
+    white-space: pre;
+    margin: 0;
+}
+
+.intro-ascii-bg .ascii-char {
+    display: inline-block;
+    /* opacity set per-char via inline style (density-based: 0.3–0.8) */
+    animation: charFloat var(--float-dur, 4s) ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+}
+
+.intro-ascii-bg .ascii-char.glow {
+    animation: charFloat var(--float-dur, 4s) ease-in-out infinite,
+               charGlow 1.5s ease-in-out 1;
+    animation-delay: var(--float-delay, 0s), 0s;
+}
+
+/* Loose floating symbols — detached from the cherub */
+.loose-symbol {
+    position: fixed;
+    font-family: monospace;
+    font-size: clamp(5px, 1.4vw, 9px);
+    color: var(--color-red);
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+    animation: charFloat var(--float-dur, 5s) ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+}
+
+.loose-symbol.glow {
+    animation: charFloat var(--float-dur, 5s) ease-in-out infinite,
+               charGlow 1.5s ease-in-out 1;
+    animation-delay: var(--float-delay, 0s), 0s;
 }
 
 /* Title */
@@ -414,11 +464,11 @@ button {
     z-index: 1;
     margin-bottom: var(--spacing-lg);
     max-width: 100%;
-    font-family: var(--font-mondwest);
-    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: clamp(0.75rem, 2.2vw, 0.88rem);
     line-height: 1.7;
     color: var(--text-body);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
 }
 
 .terminal-text {
@@ -439,7 +489,7 @@ button {
 /* Start Button */
 .btn-start {
     font-family: var(--font-neuebit);
-    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-size: clamp(2.7rem, 7.5vw, 3.6rem);
     font-weight: 700;
     color: var(--color-red);
     border: none;
@@ -477,7 +527,9 @@ button {
 .intro-footer {
     position: absolute;
     bottom: var(--spacing-md);
-    left: var(--spacing-md);
+    left: 0;
+    right: 0;
+    text-align: center;
     font-family: var(--font-montreal);
     font-style: italic;
     font-size: 0.75rem;
@@ -1035,7 +1087,6 @@ button {
 
     .intro-footer {
         bottom: var(--spacing-lg);
-        left: var(--spacing-lg);
     }
 }
 
