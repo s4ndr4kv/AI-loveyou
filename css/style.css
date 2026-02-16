@@ -469,6 +469,7 @@ button {
     line-height: 1.7;
     color: var(--text-body);
     letter-spacing: 0.01em;
+    cursor: pointer;
 }
 
 .terminal-text {
@@ -922,33 +923,47 @@ button {
 }
 
 .tokyo-text {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    line-height: 0.9;
+    color: var(--color-red);
+}
+
+/* Mixed font letters for TOKYO — same vibe as intro title */
+.t-editorial-reveal {
     font-family: var(--font-editorial);
-    font-weight: 800;
+    font-weight: 200;
     font-size: clamp(5rem, 20vw, 12rem);
     line-height: 0.9;
-    letter-spacing: -0.02em;
-    color: var(--color-red);
-    text-shadow:
-        0 0 40px rgba(255, 38, 52, 0.2),
-        0 0 80px rgba(255, 38, 52, 0.1);
+    display: inline-block;
 }
 
-.tokyo-subtitle {
-    font-family: var(--font-editorial);
-    font-weight: 400;
-    font-style: italic;
-    font-size: clamp(1rem, 3vw, 1.3rem);
-    color: var(--text-dim);
-    margin-top: var(--spacing-sm);
-    letter-spacing: 0.01em;
+.t-neuebit-reveal {
+    font-family: var(--font-neuebit);
+    font-weight: 700;
+    font-size: clamp(7rem, 28vw, 17rem);
+    line-height: 0.9;
+    display: inline-block;
 }
 
-/* Personal Message */
+.t-montreal-reveal {
+    font-family: var(--font-montreal);
+    font-weight: 700;
+    font-size: clamp(5rem, 20vw, 12rem);
+    line-height: 0.9;
+    display: inline-block;
+}
+
+/* AI Result Message */
 .reveal-message {
     margin-bottom: var(--spacing-xl);
     opacity: 0;
     transform: translateY(16px);
     transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+    width: 100%;
+    max-width: 480px;
+    text-align: left;
 }
 
 .reveal-message.visible {
@@ -956,13 +971,21 @@ button {
     transform: translateY(0);
 }
 
-.message-text {
-    font-family: var(--font-montreal);
-    font-size: clamp(1rem, 2.5vw, 1.15rem);
-    font-weight: 400;
+.reveal-terminal {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: clamp(0.75rem, 2.2vw, 0.88rem);
+    line-height: 1.7;
     color: var(--text-body);
-    line-height: 1.8;
-    max-width: 420px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+}
+
+.reveal-terminal-text {
+    display: inline;
+}
+
+.reveal-cursor {
+    display: none;
 }
 
 /* Photos */

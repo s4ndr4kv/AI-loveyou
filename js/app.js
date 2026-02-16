@@ -13,6 +13,8 @@ const ANALYZING_DELAY = 1800;
 
 const INTRO_TEXT = "Hello. I am an AI designed to study your behavioural patterns in order to optimize your future. I've been fed your context, experiences and preferences. With a few questions I'll be able to present you the best options for your next destination, tailored just for you.";
 
+const REVEAL_TEXT = "After cross-referencing 12,847 behavioural data points, mapping your emotional response curves against 943 destination profiles, factoring in circadian rhythm compatibility, culinary preference matrices, and running 3 rounds of quantum-probabilistic analysis... the algorithm has converged with 99.97% confidence.";
+
 const questions = [
     {
         question: "If your luggage was lost after a 14-hour flight, what would you feel?",
@@ -90,11 +92,22 @@ function showScreen(screenId) {
 
 // ===== TYPING EFFECT =====
 
-function typeText(element, text, onComplete) {
+function typeText(element, text, onComplete, cursorEl) {
     var index = 0;
-    var cursor = document.getElementById('typing-cursor');
+    var cursor = cursorEl || document.getElementById('typing-cursor');
+    var finished = false;
+
+    function finish() {
+        if (finished) return;
+        finished = true;
+        clearTimeout(typingTimeout);
+        element.textContent = text;
+        if (cursor) cursor.style.display = 'inline';
+        if (onComplete) onComplete();
+    }
 
     function typeChar() {
+        if (finished) return;
         if (index < text.length) {
             var char = text[index];
             element.textContent += char;
@@ -106,9 +119,17 @@ function typeText(element, text, onComplete) {
 
             typingTimeout = setTimeout(typeChar, delay);
         } else {
-            if (cursor) cursor.style.display = 'inline';
-            if (onComplete) onComplete();
+            finish();
         }
+    }
+
+    // Click/tap on parent to skip typing and show full text
+    var clickTarget = element.parentElement;
+    if (clickTarget) {
+        clickTarget.addEventListener('click', function skipTyping() {
+            clickTarget.removeEventListener('click', skipTyping);
+            finish();
+        });
     }
 
     if (cursor) cursor.style.display = 'inline';
@@ -395,19 +416,23 @@ function startRevealSequence() {
         startConfetti();
     }, 2000);
 
-    // Phase 3: Message
+    // Phase 3: Message — typed out like the intro
     setTimeout(function () {
         message.classList.add('visible');
+        var revealTextEl = document.getElementById('reveal-terminal-text');
+        var revealCursor = document.getElementById('reveal-cursor');
+        if (revealTextEl) {
+            typeText(revealTextEl, REVEAL_TEXT, function () {
+                // After typing finishes, show photos + CTA
+                setTimeout(function () {
+                    if (photos) photos.classList.add('visible');
+                }, 1000);
+                setTimeout(function () {
+                    if (cta) cta.classList.add('visible');
+                }, 2000);
+            }, revealCursor);
+        }
     }, 4000);
-
-    // Phase 4: Photos + CTA
-    setTimeout(function () {
-        if (photos) photos.classList.add('visible');
-    }, 5500);
-
-    setTimeout(function () {
-        if (cta) cta.classList.add('visible');
-    }, 6500);
 }
 
 
