@@ -15,6 +15,22 @@ const INTRO_TEXT = "Hello. I am an AI designed to study your behavioural pattern
 
 const REVEAL_TEXT = "After cross-referencing 12,847 behavioural data points, mapping your emotional response curves against 943 destination profiles, factoring in circadian rhythm compatibility, culinary preference matrices, and running 3 rounds of quantum-probabilistic analysis... the algorithm has converged with 99.97% confidence.";
 
+// Glitch decode constants
+var GLITCH_KANJI = '\u6771\u4EAC';  // 東京
+var GLITCH_CHARS = '\u6771\u4EAC\u90FD\u5E02\u8857\u9053\u5149\u95C7\u5922\u5E7B\u98A8\u96F7\u706B\u6C34\u5929\u5730\u661F\u6708\u82B1\u9CE5!@#$%^&*<>/|~+=_ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var GLITCH_FINAL_LETTERS = ['T', 'O', 'K', 'Y', 'O'];
+var GLITCH_FINAL_CLASSES = [
+    't-editorial-reveal',
+    't-neuebit-reveal',
+    't-montreal-reveal',
+    't-neuebit-reveal',
+    't-neuebit-reveal'
+];
+var GLITCH_FLICKER_MS = 50;
+var GLITCH_PHASE_SPLIT = 700;
+var GLITCH_RESOLVE_START = 1000;
+var GLITCH_RESOLVE_STAGGER = 200;
+
 const questions = [
     {
         question: "If your luggage was lost after a 14-hour flight, what would you feel?",
@@ -73,6 +89,21 @@ const loadingMessages = [
     { text: "Almost there... recalibrating for perfection...", duration: 1500 },
     { text: "Result locked. Confidence: 99.97%", duration: 1000 }
 ];
+
+var ROUTES = {
+    a: {
+        label: 'Route \u03b1',
+        title: 'Mountain Protocol',
+        text: 'Sub-algorithm detected a 94.2% compatibility with altitude-based serotonin optimization. Recommended sequence: 3 days in Tokyo for baseline urban calibration, followed by deployment to Takayama (traditional merchant district, morning market protocol), Shirakawa-go (UNESCO-classified thatched architecture, optimal for visual cortex stimulation), and Kusatsu (volcanic onsen complex, 97.3% stress dissolution rate). Total route efficiency: exceptional.',
+        photos: ['img/route-a-1.jpg', 'img/route-a-2.jpg', 'img/route-a-3.jpg', 'img/route-a-4.jpg']
+    },
+    b: {
+        label: 'Route \u03b2',
+        title: 'Island Protocol',
+        text: 'Cross-archipelago analysis reveals 96.1% match with subtropical neural enhancement patterns. Recommended sequence: 3 days in Tokyo for sensory warm-up, then transit to Taipei (night market immersion therapy, 847 food stalls mapped), Jiufen (fog-altitude nostalgia coefficient: 0.94), Taroko Gorge (geological awe-induction, marble canyon protocol), and Beitou (geothermal recovery phase, sulphur spring variant). Total route efficiency: extraordinary.',
+        photos: ['img/route-b-1.jpg', 'img/route-b-2.jpg', 'img/route-b-3.jpg', 'img/route-b-4.jpg']
+    }
+};
 
 
 // ===== SCREEN MANAGEMENT =====
@@ -266,39 +297,41 @@ function showQuestion(index) {
 
 function showAnalyzingMessage(msg, onComplete) {
     var el = document.getElementById('analyzing-msg');
-    var textEl = el.querySelector('.analyzing-text');
-    var dotsEl = el.querySelector('.analyzing-dots');
+    var textEl = document.getElementById('analyzing-text');
+    var hearts = document.querySelectorAll('.analyzing-heart');
     var container = document.getElementById('card-container');
-    var miniBar = document.getElementById('analyzing-progress-bar');
 
     container.innerHTML = '';
     textEl.textContent = msg;
+    textEl.classList.remove('visible');
 
-    // Reset mini progress bar
-    miniBar.style.transition = 'none';
-    miniBar.style.width = '0%';
+    // Reset hearts
+    for (var h = 0; h < hearts.length; h++) {
+        hearts[h].classList.remove('visible');
+    }
 
     el.classList.add('visible');
 
-    // Start the mini bar fill after reflow
+    // Slide-up fade-in the text after a frame
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            miniBar.style.transition = 'width ' + (ANALYZING_DELAY / 1000) + 's linear';
-            miniBar.style.width = '100%';
+            textEl.classList.add('visible');
         });
     });
 
-    var dotCount = 0;
-    var dotInterval = setInterval(function () {
-        dotCount = (dotCount + 1) % 4;
-        dotsEl.textContent = '.'.repeat(dotCount);
-    }, 300);
+    // Show hearts one by one
+    for (var i = 0; i < hearts.length; i++) {
+        (function (idx) {
+            setTimeout(function () {
+                hearts[idx].classList.add('visible');
+            }, 300 + idx * 280);
+        })(i);
+    }
 
+    // End after ANALYZING_DELAY
     setTimeout(function () {
-        clearInterval(dotInterval);
         el.classList.remove('visible');
-        miniBar.style.transition = 'none';
-        miniBar.style.width = '0%';
+        textEl.classList.remove('visible');
         onComplete();
     }, ANALYZING_DELAY);
 }
@@ -310,20 +343,32 @@ var LOADING_TYPE_SPEED = 18;
 
 function startLoadingSequence() {
     var messagesContainer = document.getElementById('loading-messages');
-    var progressBar = document.getElementById('loading-progress-bar');
-    var percentageEl = document.getElementById('loading-percentage');
+    var hearts = document.querySelectorAll('.loading-heart');
 
     messagesContainer.innerHTML = '';
-    progressBar.style.width = '0%';
-    percentageEl.textContent = '0%';
+
+    // Reset hearts
+    for (var h = 0; h < hearts.length; h++) {
+        hearts[h].classList.remove('visible');
+    }
 
     var totalDuration = 0;
     for (var i = 0; i < loadingMessages.length; i++) {
         totalDuration += loadingMessages[i].duration;
     }
 
-    var msgIndex = 0;
+    // Schedule hearts based on progress thresholds (20%, 40%, 60%, 80%, 100%)
     var elapsed = 0;
+    for (var h = 0; h < hearts.length; h++) {
+        var threshold = totalDuration * ((h + 1) / hearts.length);
+        (function (idx, delay) {
+            setTimeout(function () {
+                hearts[idx].classList.add('visible');
+            }, delay);
+        })(h, threshold);
+    }
+
+    var msgIndex = 0;
 
     function typeLoadingMessage(msgEl, textSpan, text, onComplete) {
         var charIndex = 0;
@@ -377,12 +422,6 @@ function startLoadingSequence() {
         messagesContainer.appendChild(msgEl);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-        // Update progress
-        elapsed += msg.duration;
-        var progress = Math.min((elapsed / totalDuration) * 100, 100);
-        progressBar.style.width = progress + '%';
-        percentageEl.textContent = Math.round(progress) + '%';
-
         var currentIndex = msgIndex;
         msgIndex++;
 
@@ -396,43 +435,946 @@ function startLoadingSequence() {
 }
 
 
+// ===== GLITCH DECODE =====
+
+function startGlitchDecode(onComplete) {
+    var target = document.getElementById('tokyo-glitch-target');
+    var destEl = document.getElementById('reveal-destination');
+    var finished = false;
+    var timeouts = [];
+    var intervals = [];
+
+    function randomChar() {
+        return GLITCH_CHARS.charAt(Math.floor(Math.random() * GLITCH_CHARS.length));
+    }
+
+    function finish() {
+        if (finished) return;
+        finished = true;
+        for (var i = 0; i < timeouts.length; i++) clearTimeout(timeouts[i]);
+        for (var i = 0; i < intervals.length; i++) clearInterval(intervals[i]);
+        // Set final state
+        target.innerHTML = '';
+        for (var i = 0; i < GLITCH_FINAL_LETTERS.length; i++) {
+            var span = document.createElement('span');
+            span.className = GLITCH_FINAL_CLASSES[i];
+            span.textContent = GLITCH_FINAL_LETTERS[i];
+            target.appendChild(span);
+        }
+        if (onComplete) onComplete();
+    }
+
+    // Reduced motion: skip straight to final
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        destEl.classList.add('visible');
+        finish();
+        return finish;
+    }
+
+    // Make destination visible (opacity fade only)
+    destEl.classList.add('visible');
+
+    // Phase 1: Show kanji 東京
+    target.innerHTML = '';
+    var kanjiSpans = [];
+    for (var k = 0; k < GLITCH_KANJI.length; k++) {
+        var s = document.createElement('span');
+        s.className = 'glitch-char';
+        s.textContent = GLITCH_KANJI[k];
+        target.appendChild(s);
+        kanjiSpans.push(s);
+    }
+
+    // Phase 2: Start flickering kanji slots (after 300ms pause to register kanji)
+    var t2 = setTimeout(function () {
+        if (finished) return;
+        var phase2Interval = setInterval(function () {
+            if (finished) return;
+            for (var i = 0; i < kanjiSpans.length; i++) {
+                kanjiSpans[i].textContent = randomChar();
+            }
+        }, GLITCH_FLICKER_MS);
+        intervals.push(phase2Interval);
+    }, 300);
+    timeouts.push(t2);
+
+    // Phase 3: Split to 5 slots
+    var t3 = setTimeout(function () {
+        if (finished) return;
+        // Clear all phase 2 intervals
+        for (var i = 0; i < intervals.length; i++) clearInterval(intervals[i]);
+        intervals = [];
+
+        target.innerHTML = '';
+        var fiveSpans = [];
+        var fiveIntervals = [];
+
+        for (var i = 0; i < 5; i++) {
+            var span = document.createElement('span');
+            span.className = 'glitch-char';
+            span.textContent = randomChar();
+            target.appendChild(span);
+            fiveSpans.push(span);
+
+            // Individual flicker for each slot
+            (function (idx) {
+                var iv = setInterval(function () {
+                    if (finished) return;
+                    // Bias toward final letter as we approach resolve
+                    if (Math.random() < 0.15) {
+                        fiveSpans[idx].textContent = GLITCH_FINAL_LETTERS[idx];
+                    } else {
+                        fiveSpans[idx].textContent = randomChar();
+                    }
+                }, GLITCH_FLICKER_MS);
+                fiveIntervals.push(iv);
+                intervals.push(iv);
+            })(i);
+        }
+
+        // Phase 4: Staggered resolution
+        var resolveBase = GLITCH_RESOLVE_START - GLITCH_PHASE_SPLIT;
+        for (var i = 0; i < 5; i++) {
+            (function (idx) {
+                var t = setTimeout(function () {
+                    if (finished) return;
+                    clearInterval(fiveIntervals[idx]);
+                    fiveSpans[idx].textContent = GLITCH_FINAL_LETTERS[idx];
+                    fiveSpans[idx].className = GLITCH_FINAL_CLASSES[idx] + ' glitch-resolved';
+
+                    if (idx === 4) {
+                        finish();
+                    }
+                }, resolveBase + idx * GLITCH_RESOLVE_STAGGER);
+                timeouts.push(t);
+            })(i);
+        }
+    }, GLITCH_PHASE_SPLIT);
+    timeouts.push(t3);
+
+    // Click/tap to skip glitch
+    destEl.addEventListener('click', function skipGlitch() {
+        destEl.removeEventListener('click', skipGlitch);
+        finish();
+    });
+
+    return finish;
+}
+
+
+// ===== GACHA MACHINE (Canvas-based) =====
+
+// Positions ordered geographically: right → center → left
+var GACHA_POSITIONS = ['back', 'front', 'mid'];
+var GACHA_ROUTE_MAP = { back: 'a', front: 'a', mid: 'b' };
+
+var gachaState = {
+    position: 0,        // 0=back, 1=mid, 2=front
+    phase: 'idle',       // idle | joystickTilt | grabbing | descending | grabbed | ascending | slideToDrop | dropping | fadeout | done
+    blinkState: false,
+    blinkTimer: 0,
+    joystickDir: null,   // null | 'left' | 'right'
+    joystickTimer: 0,
+    buttonPressed: false,
+    buttonTimer: 0,
+    clawY: 0,           // 0 = top, positive = descending (in px offset)
+    grabY: 0,            // ascending offset (negative = going up)
+    clawSlideX: 0,       // current animated X offset (smooth lateral movement)
+    clawTargetX: 0,      // target X offset
+    showGrab: false,     // true when showing closed claw + plush
+    hiddenPlush: null,   // which inside plush to hide when grabbed
+    // Drop animation state
+    dropping: false,
+    dropPlush: null,
+    dropX: 0,
+    dropY: 0,
+    dropRotation: 0,
+    dropIsFail: false,
+    fallenPlushies: [],
+    animFrame: null,
+    canvas: null,
+    ctx: null,
+    images: {},
+    loaded: false,
+    lastTime: 0
+};
+
+// All layer assets with their EXACT pixel positions from Pixaki document.json
+// Format: [identifier, x, y, w, h]
+var GACHA_LAYERS = {
+    // Bottom layers (drawn first)
+    bg:              { src: 'bg.png',              x: 0,   y: 0,   w: 500, h: 500 },
+    // Inside plushies (decorative, inside the glass)
+    inside1:         { src: 'inside-1.png',        x: 211, y: 138, w: 78,  h: 82  },
+    inside2:         { src: 'inside-2.png',        x: 199, y: 220, w: 82,  h: 48  },
+    inside3:         { src: 'inside-3.png',        x: 157, y: 190, w: 74,  h: 76  },
+    inside4:         { src: 'inside-4.png',        x: 258, y: 181, w: 74,  h: 76  },
+    inside5:         { src: 'inside-5.png',        x: 163, y: 168, w: 82,  h: 78  },
+    inside6:         { src: 'inside-6.png',        x: 298, y: 195, w: 47,  h: 74  },
+    inside7:         { src: 'inside-7.png',        x: 155, y: 185, w: 59,  h: 82  },
+    // Claw standby (open, short bar, at default back position)
+    clawOpen:        { src: 'claw-open.png',       x: 275, y: 74,  w: 45,  h: 38  },
+    clawHolder:      { src: 'claw-holder.png',     x: 289, y: 54,  w: 17,  h: 8   },
+    clawBarShort:    { src: 'claw-bar-short.png',  x: 295, y: 55,  w: 5,   h: 29  },
+    // Grab states — closed claw with plush at each position
+    grabBackPlush:   { src: 'claw-back-plush.png',   x: 258, y: 101, w: 74, h: 76 },
+    grabBackBar:     { src: 'claw-back-bar.png',      x: 295, y: 54,  w: 5,  h: 27 },
+    grabBackFingers: { src: 'claw-back-fingers.png',  x: 275, y: 74,  w: 45, h: 40 },
+    grabBackHolder:  { src: 'claw-back-holder.png',   x: 289, y: 54,  w: 17, h: 8  },
+    grabMidPlush:    { src: 'claw-mid-plush.png',     x: 156, y: 101, w: 74, h: 76 },
+    grabMidBar:      { src: 'claw-mid-bar.png',       x: 193, y: 54,  w: 5,  h: 27 },
+    grabMidFingers:  { src: 'claw-mid-fingers.png',   x: 173, y: 74,  w: 45, h: 40 },
+    grabMidHolder:   { src: 'claw-mid-holder.png',    x: 187, y: 54,  w: 17, h: 8  },
+    grabFrontPlush:  { src: 'claw-front-plush.png',   x: 211, y: 94,  w: 78, h: 82 },
+    grabFrontBar:    { src: 'claw-front-bar.png',     x: 248, y: 54,  w: 5,  h: 27 },
+    grabFrontFingers:{ src: 'claw-front-fingers.png', x: 228, y: 74,  w: 45, h: 40 },
+    grabFrontHolder: { src: 'claw-front-holder.png',  x: 242, y: 54,  w: 17, h: 8  },
+    // Glass
+    glass:           { src: 'glass.png',           x: 154, y: 38,  w: 192, h: 231 },
+    glassShine:      { src: 'glass-shine.png',     x: 155, y: 82,  w: 190, h: 149 },
+    // Machine structure (on top of everything inside)
+    machine:         { src: 'machine.png',         x: 123, y: 3,   w: 254, h: 487 },
+    dither:          { src: 'dither.png',          x: 129, y: 12,  w: 241, h: 465 },
+    // Letters
+    gacha1off:       { src: 'gacha1-off.png',      x: 160, y: 387, w: 119, h: 32  },
+    gacha1on:        { src: 'gacha1-on.png',       x: 160, y: 387, w: 119, h: 32  },
+    gacha2off:       { src: 'gacha2-off.png',      x: 160, y: 420, w: 119, h: 32  },
+    gacha2on:        { src: 'gacha2-on.png',       x: 160, y: 420, w: 119, h: 32  },
+    // Button
+    btnStandby:      { src: 'btn-standby.png',     x: 306, y: 306, w: 20,  h: 16  },
+    btnPressed:      { src: 'btn-pressed.png',     x: 306, y: 309, w: 20,  h: 13  },
+    // Joystick
+    joyUpStick:      { src: 'joy-up-stick.png',    x: 246, y: 285, w: 6,   h: 30  },
+    joyUpBase:       { src: 'joy-up-base.png',     x: 237, y: 262, w: 24,  h: 24  },
+    joyRightStick:   { src: 'joy-right-stick.png', x: 246, y: 289, w: 25,  h: 26  },
+    joyRightBase:    { src: 'joy-right-base.png',  x: 265, y: 271, w: 24,  h: 24  },
+    joyLeftStick:    { src: 'joy-left-stick.png',  x: 225, y: 289, w: 25,  h: 26  },
+    joyLeftBase:     { src: 'joy-left-base.png',   x: 207, y: 271, w: 24,  h: 24  }
+};
+
+// Claw X offsets: back=0 (right), mid=-102 (left), front=-47 (center)
+var CLAW_OFFSETS = { back: 0, mid: -102, front: -47 };
+
+// Hit areas in 500x500 canvas space
+// Joystick center ~(249,280), button center ~(316,314)
+var GACHA_HIT_AREAS = {
+    joyLeft:  { x: 155, y: 235, w: 95, h: 95 },
+    joyRight: { x: 245, y: 235, w: 60, h: 95 },
+    button:   { x: 295, y: 295, w: 45, h: 45 }
+};
+
+function loadGachaImages(callback) {
+    if (gachaState.loaded) { callback(); return; }
+    var keys = Object.keys(GACHA_LAYERS);
+    var loaded = 0;
+    var total = keys.length;
+    var called = false;
+    function done() {
+        if (called) return;
+        called = true;
+        gachaState.loaded = true;
+        callback();
+    }
+    for (var i = 0; i < keys.length; i++) {
+        (function(key) {
+            var img = new Image();
+            img.onload = function () {
+                gachaState.images[key] = img;
+                loaded++;
+                if (loaded === total) done();
+            };
+            img.onerror = function () {
+                loaded++;
+                if (loaded === total) done();
+            };
+            img.src = 'img/gacha/' + GACHA_LAYERS[key].src;
+        })(keys[i]);
+    }
+}
+
+function drawLayer(ctx, key, offsetX, offsetY) {
+    var img = gachaState.images[key];
+    var L = GACHA_LAYERS[key];
+    if (!img) return;
+    ctx.drawImage(img, L.x + (offsetX || 0), L.y + (offsetY || 0), L.w, L.h);
+}
+
+// Draw a bar sprite stretched vertically. The bar top stays at its original Y,
+// but its height grows by offsetY pixels (the claw descent/ascent distance).
+function drawBarStretched(ctx, barKey, offsetX, offsetY) {
+    var img = gachaState.images[barKey];
+    var L = GACHA_LAYERS[barKey];
+    if (!img) return;
+    var stretchedH = L.h + (offsetY || 0);
+    if (stretchedH < 1) stretchedH = 1;
+    ctx.drawImage(img,
+        0, 0, img.naturalWidth, img.naturalHeight,
+        L.x + (offsetX || 0), L.y, L.w, stretchedH
+    );
+}
+
+// Which inside plush corresponds to each grab position
+// back (RIGHT) = inside4, mid (LEFT) = inside3, front (CENTER) = inside1
+var GRAB_HIDES = { back: 'inside4', mid: 'inside3', front: 'inside1' };
+
+// Y position where the plush top sits when grabbed (just below fingers grip)
+var GRAB_PLUSH_Y = 100;
+
+// Descend distances per position
+var DESCEND_PIXELS = { back: 75, mid: 82, front: 35 };
+
+// Drop animation
+var SLIDE_TO_DROP_DURATION = 800;
+var DROP_PAUSE = 300;
+var DROP_DURATION = 600;
+var DROP_DISTANCE = 200;
+var GLASS_CLIP = { x: 154, y: 38, w: 192, h: 231 };
+
+// Fail mechanic
+var FAIL_CHANCE = 0.35;
+var FAIL_ASCEND_FRACTION = 0.45;
+var FAIL_DROP_DURATION = 800;
+var FAIL_ROTATION = Math.PI / 4;
+
+function renderGacha() {
+    var ctx = gachaState.ctx;
+    if (!ctx || !gachaState.loaded) return;
+
+    ctx.clearRect(0, 0, 500, 500);
+
+    // 1. Background
+    drawLayer(ctx, 'bg');
+
+    // 2. Machine structure + dither (drawn early so plushies appear in front)
+    drawLayer(ctx, 'machine');
+    drawLayer(ctx, 'dither');
+
+    // Helper: draw a plush with rotation, clipped to glass
+    function drawDroppedPlush(key, x, y, rotation) {
+        var img = gachaState.images[key];
+        var L = GACHA_LAYERS[key];
+        if (!img) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(GLASS_CLIP.x, GLASS_CLIP.y, GLASS_CLIP.w, GLASS_CLIP.h);
+        ctx.clip();
+        if (rotation !== 0) {
+            var cx = x + L.w / 2;
+            var cy = y + L.h / 2;
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation);
+            ctx.drawImage(img, -L.w / 2, -L.h / 2, L.w, L.h);
+        } else {
+            ctx.drawImage(img, x, y, L.w, L.h);
+        }
+        ctx.restore();
+    }
+
+    // 3a. Success drop: plush falls BEHIND all other plushies, clipped to glass
+    if (gachaState.dropping && !gachaState.dropIsFail && gachaState.dropPlush) {
+        drawDroppedPlush(gachaState.dropPlush, gachaState.dropX, gachaState.dropY, 0);
+    }
+
+    // 3b. Inside plushies — draw back-to-front
+    var plushOrder = ['inside7', 'inside6', 'inside5', 'inside4', 'inside3', 'inside2', 'inside1'];
+    for (var i = 0; i < plushOrder.length; i++) {
+        var pk = plushOrder[i];
+        if (pk === gachaState.hiddenPlush) continue;
+
+        if (gachaState.dropping && gachaState.dropIsFail && gachaState.dropPlush === pk) {
+            drawDroppedPlush(pk, gachaState.dropX, gachaState.dropY, gachaState.dropRotation);
+            continue;
+        }
+
+        var fallen = null;
+        for (var f = 0; f < gachaState.fallenPlushies.length; f++) {
+            if (gachaState.fallenPlushies[f].key === pk) { fallen = gachaState.fallenPlushies[f]; break; }
+        }
+        if (fallen) {
+            drawDroppedPlush(pk, fallen.x, fallen.y, fallen.rotation);
+            continue;
+        }
+
+        drawLayer(ctx, pk);
+    }
+
+    // 4. Claw system — in front of plushies, behind glass
+    var posName = GACHA_POSITIONS[gachaState.position];
+    var clawOffX = gachaState.clawSlideX; // smooth animated X
+    var clawOffY = gachaState.clawY;
+
+    if (!gachaState.showGrab) {
+        // Open claw — holder fixed, bar stretches down, fingers descend
+        drawLayer(ctx, 'clawHolder', clawOffX, 0);
+        drawBarStretched(ctx, 'clawBarShort', clawOffX, clawOffY);
+        drawLayer(ctx, 'clawOpen', clawOffX, clawOffY);
+    } else {
+        // Closed claw with ORIGINAL plush sprite
+        // Use "back" grab sprites as base, offset by CLAW_OFFSETS
+        var grabOffY = gachaState.grabY;
+        var plushKey = gachaState.hiddenPlush;
+        drawLayer(ctx, 'grabBackHolder', clawOffX, 0);
+        drawBarStretched(ctx, 'clawBarShort', clawOffX, grabOffY);
+        // Draw the original inside plush sprite centered under the claw
+        if (plushKey) {
+            var plushImg = gachaState.images[plushKey];
+            var plushL = GACHA_LAYERS[plushKey];
+            if (plushImg) {
+                var fingersCenterX = 297 + clawOffX;
+                var px = fingersCenterX - plushL.w / 2;
+                var py = GRAB_PLUSH_Y + grabOffY;
+                ctx.drawImage(plushImg, px, py, plushL.w, plushL.h);
+            }
+        }
+        drawLayer(ctx, 'grabBackFingers', clawOffX, grabOffY);
+    }
+
+    // 5. Glass — subtle reflection, always in front of everything inside the machine
+    ctx.save();
+    ctx.globalAlpha = 0.10;
+    drawLayer(ctx, 'glass');
+    ctx.restore();
+
+    // Glass shine — subtle white reflection
+    ctx.save();
+    ctx.globalAlpha = 0.50;
+    drawLayer(ctx, 'glassShine');
+    ctx.restore();
+
+    // 6. Letters (blink)
+    if (gachaState.blinkState) {
+        drawLayer(ctx, 'gacha1on');
+        drawLayer(ctx, 'gacha2off');
+    } else {
+        drawLayer(ctx, 'gacha1off');
+        drawLayer(ctx, 'gacha2on');
+    }
+
+    // 7. Button
+    if (gachaState.buttonPressed) {
+        drawLayer(ctx, 'btnPressed');
+    } else {
+        drawLayer(ctx, 'btnStandby');
+    }
+
+    // 8. Joystick
+    if (gachaState.joystickDir === 'left') {
+        drawLayer(ctx, 'joyLeftStick');
+        drawLayer(ctx, 'joyLeftBase');
+    } else if (gachaState.joystickDir === 'right') {
+        drawLayer(ctx, 'joyRightStick');
+        drawLayer(ctx, 'joyRightBase');
+    } else {
+        drawLayer(ctx, 'joyUpStick');
+        drawLayer(ctx, 'joyUpBase');
+    }
+}
+
+function gachaAnimLoop(time) {
+    if (gachaState.phase === 'done') return;
+
+    var dt = time - gachaState.lastTime;
+    gachaState.lastTime = time;
+
+    // Blink timer (toggle every 500ms)
+    gachaState.blinkTimer += dt;
+    if (gachaState.blinkTimer >= 500) {
+        gachaState.blinkTimer -= 500;
+        gachaState.blinkState = !gachaState.blinkState;
+    }
+
+    // Joystick tilt timer
+    if (gachaState.joystickDir !== null) {
+        gachaState.joystickTimer -= dt;
+        if (gachaState.joystickTimer <= 0) {
+            gachaState.joystickDir = null;
+            if (gachaState.phase === 'joystickTilt') {
+                gachaState.phase = 'idle';
+            }
+        }
+    }
+
+    // Button press timer
+    if (gachaState.buttonPressed) {
+        gachaState.buttonTimer -= dt;
+        if (gachaState.buttonTimer <= 0) {
+            gachaState.buttonPressed = false;
+        }
+    }
+
+    // Smooth lateral claw slide
+    var slideSpeed = 0.004;
+    var diff = gachaState.clawTargetX - gachaState.clawSlideX;
+    if (Math.abs(diff) > 0.5) {
+        gachaState.clawSlideX += diff * Math.min(slideSpeed * dt, 1);
+    } else {
+        gachaState.clawSlideX = gachaState.clawTargetX;
+    }
+
+    renderGacha();
+    gachaState.animFrame = requestAnimationFrame(gachaAnimLoop);
+}
+
+function initGacha() {
+    var viewport = document.getElementById('gacha-viewport');
+    var canvas = document.getElementById('gacha-canvas');
+    gachaState.canvas = canvas;
+
+    // Reset state
+    gachaState.position = 0;
+    gachaState.phase = 'idle';
+    gachaState.blinkState = false;
+    gachaState.blinkTimer = 0;
+    gachaState.joystickDir = null;
+    gachaState.buttonPressed = false;
+    gachaState.clawY = 0;
+    gachaState.grabY = 0;
+    gachaState.clawSlideX = 0;
+    gachaState.clawTargetX = 0;
+    gachaState.showGrab = false;
+    gachaState.hiddenPlush = null;
+    gachaState.lastTime = performance.now();
+
+    // Load images then start
+    loadGachaImages(function () {
+        viewport.classList.add('visible');
+
+        // Size canvas buffer for crisp pixel art on retina screens
+        // Snap to integer pixel multiples to prevent sub-pixel artifacts
+        requestAnimationFrame(function () {
+            var dpr = window.devicePixelRatio || 1;
+            var displayWidth = canvas.clientWidth || 375;
+            var pixelScale = Math.max(1, Math.round(displayWidth * dpr / 500));
+            var bufferSize = 500 * pixelScale;
+            canvas.width = bufferSize;
+            canvas.height = bufferSize;
+
+            gachaState.canvasScale = pixelScale;
+            gachaState.ctx = canvas.getContext('2d');
+            gachaState.ctx.imageSmoothingEnabled = false;
+            gachaState.ctx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
+
+            renderGacha();
+            gachaState.animFrame = requestAnimationFrame(gachaAnimLoop);
+        });
+    });
+
+    // Tap/click + drag/swipe handler on canvas (only attach once)
+    if (!gachaState.clickBound) {
+        gachaState.clickBound = true;
+
+        // Drag state for joystick swipe detection
+        var dragState = {
+            active: false,
+            startX: 0,
+            startY: 0,
+            startedOnJoystick: false,
+            moved: false
+        };
+        var DRAG_THRESHOLD = 4; // pixels in logical coords — very sensitive
+
+        function isAnimating() {
+            return gachaState.phase === 'done' || gachaState.phase === 'fadeout' ||
+                gachaState.phase === 'grabbing' || gachaState.phase === 'descending' ||
+                gachaState.phase === 'grabbed' || gachaState.phase === 'ascending' ||
+                gachaState.phase === 'slideToDrop' || gachaState.phase === 'dropping' ||
+                gachaState.phase === 'complete';
+        }
+
+        function clientToLogical(clientX, clientY) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: (clientX - rect.left) * 500 / rect.width,
+                y: (clientY - rect.top) * 500 / rect.height
+            };
+        }
+
+        function isOnJoystickArea(cx, cy) {
+            return hitTest(cx, cy, GACHA_HIT_AREAS.joyLeft) ||
+                   hitTest(cx, cy, GACHA_HIT_AREAS.joyRight);
+        }
+
+        function handlePointerDown(clientX, clientY) {
+            if (isAnimating()) return;
+            var p = clientToLogical(clientX, clientY);
+            dragState.active = true;
+            dragState.startX = p.x;
+            dragState.startY = p.y;
+            dragState.moved = false;
+            dragState.startedOnJoystick = isOnJoystickArea(p.x, p.y);
+        }
+
+        function handlePointerMove(clientX, clientY) {
+            if (!dragState.active || !dragState.startedOnJoystick) return;
+            if (isAnimating()) return;
+            var p = clientToLogical(clientX, clientY);
+            var dx = p.x - dragState.startX;
+
+            if (!dragState.moved && Math.abs(dx) >= DRAG_THRESHOLD) {
+                dragState.moved = true;
+                if (dx < 0) {
+                    moveJoystick('left');
+                } else {
+                    moveJoystick('right');
+                }
+            }
+        }
+
+        function handlePointerUp(clientX, clientY) {
+            if (!dragState.active) return;
+            var wasMoved = dragState.moved;
+            var wasOnJoystick = dragState.startedOnJoystick;
+            dragState.active = false;
+            dragState.moved = false;
+
+            if (wasMoved && wasOnJoystick) return;
+            if (isAnimating()) return;
+
+            var p = clientToLogical(clientX, clientY);
+            if (hitTest(p.x, p.y, GACHA_HIT_AREAS.joyLeft)) {
+                moveJoystick('left');
+            } else if (hitTest(p.x, p.y, GACHA_HIT_AREAS.joyRight)) {
+                moveJoystick('right');
+            } else if (hitTest(p.x, p.y, GACHA_HIT_AREAS.button)) {
+                pressButton();
+            }
+        }
+
+        // Touch events
+        canvas.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var t = e.touches[0];
+            handlePointerDown(t.clientX, t.clientY);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+            var t = e.touches[0];
+            handlePointerMove(t.clientX, t.clientY);
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            var t = e.changedTouches[0];
+            handlePointerUp(t.clientX, t.clientY);
+        }, { passive: false });
+
+        // Mouse events
+        canvas.addEventListener('mousedown', function (e) {
+            e.stopPropagation();
+            handlePointerDown(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mousemove', function (e) {
+            handlePointerMove(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mouseup', function (e) {
+            handlePointerUp(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mouseleave', function () {
+            dragState.active = false;
+            dragState.moved = false;
+        });
+    }
+}
+
+function hitTest(px, py, area) {
+    return px >= area.x && px <= area.x + area.w &&
+           py >= area.y && py <= area.y + area.h;
+}
+
+function moveJoystick(direction) {
+    // Allow during idle or joystickTilt (so rapid taps work)
+    if (gachaState.phase !== 'idle' && gachaState.phase !== 'joystickTilt') return;
+
+    if (direction === 'left' && gachaState.position < 2) {
+        gachaState.position++;
+    } else if (direction === 'right' && gachaState.position > 0) {
+        gachaState.position--;
+    } else {
+        return;
+    }
+
+    gachaState.phase = 'joystickTilt';
+    gachaState.joystickDir = direction;
+    gachaState.joystickTimer = 400;
+    // Set target X for smooth slide
+    var newPosName = GACHA_POSITIONS[gachaState.position];
+    gachaState.clawTargetX = CLAW_OFFSETS[newPosName];
+}
+
+function pressButton() {
+    // Allow during idle or joystickTilt
+    if (gachaState.phase !== 'idle' && gachaState.phase !== 'joystickTilt') return;
+    // Snap claw to final position before grabbing
+    var posName = GACHA_POSITIONS[gachaState.position];
+    gachaState.clawSlideX = CLAW_OFFSETS[posName];
+    gachaState.clawTargetX = gachaState.clawSlideX;
+    gachaState.phase = 'grabbing';
+    gachaState.buttonPressed = true;
+    gachaState.buttonTimer = 200;
+    grabSequence();
+}
+
+function easeOutBounce(t) {
+    if (t < 1 / 2.75) {
+        return 7.5625 * t * t;
+    } else if (t < 2 / 2.75) {
+        t -= 1.5 / 2.75;
+        return 7.5625 * t * t + 0.75;
+    } else if (t < 2.5 / 2.75) {
+        t -= 2.25 / 2.75;
+        return 7.5625 * t * t + 0.9375;
+    } else {
+        t -= 2.625 / 2.75;
+        return 7.5625 * t * t + 0.984375;
+    }
+}
+
+function startSuccessDrop(routeKey, plushKey) {
+    gachaState.phase = 'dropping';
+    var plushL = GACHA_LAYERS[plushKey];
+    if (!plushL) { console.error('startSuccessDrop: invalid plushKey', plushKey); return; }
+    var fingersCenterX = 297 + gachaState.clawSlideX;
+    gachaState.dropPlush = plushKey;
+    gachaState.dropX = fingersCenterX - plushL.w / 2;
+    gachaState.dropY = GRAB_PLUSH_Y;
+    gachaState.dropRotation = 0;
+    gachaState.dropIsFail = false;
+    gachaState.dropping = true;
+    gachaState.showGrab = false;
+    gachaState.clawY = 0;
+
+    var dropStart = performance.now();
+    var dropStartY = gachaState.dropY;
+
+    function animateDrop() {
+        var elapsed = performance.now() - dropStart;
+        var t = Math.min(elapsed / DROP_DURATION, 1);
+        t = t * t;
+        gachaState.dropY = dropStartY + DROP_DISTANCE * t;
+        if (elapsed < DROP_DURATION) {
+            requestAnimationFrame(animateDrop);
+        } else {
+            gachaState.dropping = false;
+            gachaState.dropPlush = null;
+
+            gachaState.phase = 'fadeout';
+            var viewport = document.getElementById('gacha-viewport');
+            viewport.style.opacity = '0';
+            viewport.style.transform = 'translateY(-16px)';
+            setTimeout(function () {
+                viewport.style.display = 'none';
+                if (gachaState.animFrame) {
+                    cancelAnimationFrame(gachaState.animFrame);
+                }
+                gachaState.phase = 'done';
+                showRoute(routeKey);
+            }, 500);
+        }
+    }
+    requestAnimationFrame(animateDrop);
+}
+
+function grabSequence() {
+    var posName = GACHA_POSITIONS[gachaState.position];
+    var routeKey = GACHA_ROUTE_MAP[posName];
+    var descendPixels = DESCEND_PIXELS[posName];
+    var willFail = Math.random() < FAIL_CHANCE;
+    var descendDuration = 2000;
+    var grabPause = 600;
+
+    gachaState.phase = 'descending';
+    var descendStart = performance.now();
+
+    function animateDescend() {
+        var elapsed = performance.now() - descendStart;
+        var t = Math.min(elapsed / descendDuration, 1);
+        t = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        gachaState.clawY = descendPixels * t;
+        if (elapsed < descendDuration) {
+            requestAnimationFrame(animateDescend);
+        } else {
+            gachaState.clawY = descendPixels;
+
+            setTimeout(function () {
+                gachaState.hiddenPlush = GRAB_HIDES[posName];
+                // Remove from fallenPlushies if re-grabbing a failed plush
+                gachaState.fallenPlushies = gachaState.fallenPlushies.filter(function (f) {
+                    return f.key !== gachaState.hiddenPlush;
+                });
+                gachaState.showGrab = true;
+                gachaState.clawY = 0;
+                gachaState.grabY = descendPixels;
+                gachaState.phase = 'ascending';
+
+                var ascendStart = performance.now();
+                var startGrabY = descendPixels;
+                var endGrabY = willFail ? descendPixels * (1 - FAIL_ASCEND_FRACTION) : 0;
+                var ascendDuration = willFail ? 2500 * FAIL_ASCEND_FRACTION : 2500;
+
+                function animateAscend() {
+                    var elapsed2 = performance.now() - ascendStart;
+                    var t2 = Math.min(elapsed2 / ascendDuration, 1);
+                    t2 = t2 < 0.5 ? 2 * t2 * t2 : 1 - Math.pow(-2 * t2 + 2, 2) / 2;
+                    gachaState.grabY = startGrabY + (endGrabY - startGrabY) * t2;
+                    if (elapsed2 < ascendDuration) {
+                        requestAnimationFrame(animateAscend);
+                    } else {
+                        gachaState.grabY = endGrabY;
+
+                        if (willFail) {
+                            // === FAIL PATH ===
+                            gachaState.phase = 'dropping';
+                            var plushKey = gachaState.hiddenPlush;
+                            var plushL = GACHA_LAYERS[plushKey];
+                            var fingersCenterX = 297 + gachaState.clawSlideX;
+                            gachaState.dropPlush = plushKey;
+                            gachaState.dropX = fingersCenterX - plushL.w / 2;
+                            gachaState.dropY = GRAB_PLUSH_Y + gachaState.grabY;
+                            gachaState.dropRotation = 0;
+                            gachaState.dropIsFail = true;
+                            gachaState.dropping = true;
+                            gachaState.showGrab = false;
+                            gachaState.hiddenPlush = null;
+                            gachaState.clawY = 0;
+
+                            var originalY = GACHA_LAYERS[plushKey].y;
+                            var dropStartY = gachaState.dropY;
+                            var dropDistance = originalY - dropStartY;
+                            var failDropStart = performance.now();
+
+                            function animateFailDrop() {
+                                var elapsed3 = performance.now() - failDropStart;
+                                var t3 = Math.min(elapsed3 / FAIL_DROP_DURATION, 1);
+                                gachaState.dropY = dropStartY + dropDistance * easeOutBounce(t3);
+                                gachaState.dropRotation = FAIL_ROTATION * (1 - Math.pow(1 - t3, 2));
+                                if (elapsed3 < FAIL_DROP_DURATION) {
+                                    requestAnimationFrame(animateFailDrop);
+                                } else {
+                                    gachaState.dropY = originalY;
+                                    gachaState.dropRotation = FAIL_ROTATION;
+                                    gachaState.fallenPlushies.push({
+                                        key: plushKey,
+                                        x: gachaState.dropX,
+                                        y: originalY,
+                                        rotation: FAIL_ROTATION
+                                    });
+                                    gachaState.dropping = false;
+                                    gachaState.dropPlush = null;
+                                    gachaState.dropIsFail = false;
+                                    setTimeout(function () {
+                                        gachaState.phase = 'idle';
+                                        gachaState.showGrab = false;
+                                        gachaState.clawY = 0;
+                                        gachaState.grabY = 0;
+                                    }, 400);
+                                }
+                            }
+                            requestAnimationFrame(animateFailDrop);
+                        } else {
+                            // === SUCCESS PATH ===
+                            gachaState.phase = 'slideToDrop';
+                            var successPlushKey = gachaState.hiddenPlush;
+                            var slideStart = performance.now();
+                            var slideFromX = gachaState.clawSlideX;
+                            var slideToX = CLAW_OFFSETS.back;
+                            gachaState.clawTargetX = slideToX;
+
+                            function animateSlideToDrop() {
+                                var elapsed3 = performance.now() - slideStart;
+                                var t3 = Math.min(elapsed3 / SLIDE_TO_DROP_DURATION, 1);
+                                t3 = t3 < 0.5 ? 2 * t3 * t3 : 1 - Math.pow(-2 * t3 + 2, 2) / 2;
+                                gachaState.clawSlideX = slideFromX + (slideToX - slideFromX) * t3;
+                                if (elapsed3 < SLIDE_TO_DROP_DURATION) {
+                                    requestAnimationFrame(animateSlideToDrop);
+                                } else {
+                                    gachaState.clawSlideX = slideToX;
+                                    gachaState.clawTargetX = slideToX;
+                                    setTimeout(function () {
+                                        startSuccessDrop(routeKey, successPlushKey);
+                                    }, DROP_PAUSE);
+                                }
+                            }
+
+                            if (Math.abs(slideFromX - slideToX) < 1) {
+                                gachaState.clawSlideX = slideToX;
+                                setTimeout(function () {
+                                    startSuccessDrop(routeKey, successPlushKey);
+                                }, DROP_PAUSE);
+                            } else {
+                                requestAnimationFrame(animateSlideToDrop);
+                            }
+                        }
+                    }
+                }
+                requestAnimationFrame(animateAscend);
+            }, grabPause);
+        }
+    }
+    requestAnimationFrame(animateDescend);
+}
+
+function showRoute(routeKey) {
+    var route = ROUTES[routeKey];
+    var detail = document.getElementById('route-detail');
+    detail.classList.add('visible');
+
+    // Set title
+    document.getElementById('route-detail-title').textContent = route.label + ' \u2014 ' + route.title;
+
+    // Type the description text
+    var textEl = document.getElementById('route-detail-text');
+    var cursor = document.getElementById('route-detail-cursor');
+    textEl.textContent = '';
+
+    typeText(textEl, route.text, function () {
+        // Show photos after typing finishes
+        var photosEl = document.getElementById('route-detail-photos');
+        photosEl.innerHTML = '';
+        for (var i = 0; i < route.photos.length; i++) {
+            var placeholder = document.createElement('div');
+            placeholder.className = 'route-photo-placeholder';
+            placeholder.textContent = 'Photo ' + (i + 1);
+            photosEl.appendChild(placeholder);
+        }
+    }, cursor);
+}
+
+
 // ===== REVEAL =====
 
 function startRevealSequence() {
     var overlay = document.getElementById('reveal-overlay');
-    var destination = document.getElementById('reveal-destination');
     var message = document.getElementById('reveal-message');
-    var photos = document.getElementById('reveal-photos');
-    var cta = document.getElementById('reveal-cta');
 
     // Phase 1: Overlay fades out
     setTimeout(function () {
         overlay.classList.add('fade-out');
     }, 800);
 
-    // Phase 2: TOKYO appears
-    setTimeout(function () {
-        destination.classList.add('visible');
-        startConfetti();
-    }, 2000);
-
-    // Phase 3: Message — typed out like the intro
+    // Phase 2: Terminal text types out first
     setTimeout(function () {
         message.classList.add('visible');
         var revealTextEl = document.getElementById('reveal-terminal-text');
         var revealCursor = document.getElementById('reveal-cursor');
+
         if (revealTextEl) {
             typeText(revealTextEl, REVEAL_TEXT, function () {
-                // After typing finishes, show photos + CTA
-                setTimeout(function () {
-                    if (photos) photos.classList.add('visible');
-                }, 1000);
-                setTimeout(function () {
-                    if (cta) cta.classList.add('visible');
-                }, 2000);
+                // Phase 3: When typing finishes → glitch decode 東京 → TOKYO
+                startGlitchDecode(function () {
+                    // Phase 4: After glitch resolves → confetti + gacha machine
+                    startConfetti();
+                    setTimeout(function () {
+                        initGacha();
+                    }, 1500);
+                });
             }, revealCursor);
         }
-    }, 4000);
+    }, 2000);
 }
 
 

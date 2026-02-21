@@ -114,12 +114,13 @@
 
             <!-- Analyzing message -->
             <div class="analyzing-msg" id="analyzing-msg">
-                <div class="analyzing-msg-text-line">
-                    <span class="analyzing-text"></span>
-                    <span class="analyzing-dots"></span>
-                </div>
-                <div class="analyzing-progress-container">
-                    <div class="analyzing-progress-bar" id="analyzing-progress-bar"></div>
+                <span class="analyzing-text" id="analyzing-text"></span>
+                <div class="analyzing-hearts" id="analyzing-hearts">
+                    <img class="analyzing-heart" src="img/heart3.png" alt="">
+                    <img class="analyzing-heart" src="img/heart3.png" alt="">
+                    <img class="analyzing-heart" src="img/heart3.png" alt="">
+                    <img class="analyzing-heart" src="img/heart3.png" alt="">
+                    <img class="analyzing-heart" src="img/heart3.png" alt="">
                 </div>
             </div>
         </div>
@@ -135,11 +136,13 @@
 
             <div class="loading-messages" id="loading-messages"></div>
 
-            <div class="loading-progress-container">
-                <div class="loading-progress-bar" id="loading-progress-bar"></div>
+            <div class="loading-hearts" id="loading-hearts">
+                <img class="loading-heart" src="img/heart3.png" alt="">
+                <img class="loading-heart" src="img/heart3.png" alt="">
+                <img class="loading-heart" src="img/heart3.png" alt="">
+                <img class="loading-heart" src="img/heart3.png" alt="">
+                <img class="loading-heart" src="img/heart3.png" alt="">
             </div>
-
-            <div class="loading-percentage" id="loading-percentage">0%</div>
         </div>
     </section>
 
@@ -151,7 +154,7 @@
 
         <div class="reveal-container">
             <div class="reveal-destination" id="reveal-destination">
-                <h1 class="tokyo-text"><span class="t-editorial-reveal">T</span><span class="t-neuebit-reveal">O</span><span class="t-montreal-reveal">K</span><span class="t-neuebit-reveal">Y</span><span class="t-editorial-reveal">O</span></h1>
+                <h1 class="tokyo-text" id="tokyo-glitch-target"></h1>
             </div>
 
             <!-- ====== AI RESULT MESSAGE ====== -->
@@ -163,29 +166,23 @@
             </div>
             <!-- ====== END AI RESULT MESSAGE ====== -->
 
-            <!-- ====== PHOTOS — ADD YOUR IMAGES HERE ====== -->
-            <div class="reveal-photos" id="reveal-photos">
-                <div class="photo-grid">
-                    <!-- Add your photos like this: -->
-                    <!-- <img src="img/your-photo-1.jpg" alt="Tokyo memory"> -->
-                    <!-- <img src="img/your-photo-2.jpg" alt="Tokyo memory"> -->
-                    <!-- <img src="img/your-photo-3.jpg" alt="Tokyo memory"> -->
-                    <div class="photo-placeholder">
-                        <span>Your photos here</span>
+            <!-- ====== GACHA MACHINE ====== -->
+            <div class="gacha-viewport" id="gacha-viewport">
+                <canvas id="gacha-canvas" width="500" height="500"></canvas>
+            </div>
+
+            <!-- ====== ROUTE DETAIL VIEW ====== -->
+            <div class="route-detail" id="route-detail">
+                <div class="route-detail-content" id="route-detail-content">
+                    <h2 class="route-detail-title" id="route-detail-title"></h2>
+                    <div class="route-detail-terminal">
+                        <p class="route-detail-text" id="route-detail-text"></p>
+                        <span class="cursor route-detail-cursor" id="route-detail-cursor">_</span>
                     </div>
-                    <div class="photo-placeholder">
-                        <span>Your photos here</span>
-                    </div>
-                    <div class="photo-placeholder">
-                        <span>Your photos here</span>
-                    </div>
+                    <div class="route-detail-photos" id="route-detail-photos"></div>
                 </div>
             </div>
-            <!-- ====== END PHOTOS ====== -->
-
-            <div class="reveal-cta" id="reveal-cta">
-                <p class="cta-text">Pack your bags &mdash; round two awaits</p>
-            </div>
+            <!-- ====== END ROUTES ====== -->
         </div>
     </section>
 
