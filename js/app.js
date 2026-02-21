@@ -139,8 +139,6 @@ function showScreen(screenId) {
     if (target) {
         target.classList.add('active');
         currentScreen = screenId;
-        // iOS Safari: restart GIF animations when screen becomes visible
-        restartGifs(target);
     }
 }
 
@@ -1635,8 +1633,6 @@ function prepareRevealContent() {
     var matchTitle = document.getElementById('match-title');
     matchTitle.classList.add('visible');
 
-    // iOS: restart GIFs in the reveal screen (3dheart, heart, etc.)
-    restartGifs(document.getElementById('reveal-screen'));
 }
 
 // Start the animated parts of the reveal (glitch decode, timeline, confetti)
@@ -1905,36 +1901,11 @@ function randomRange(min, max) {
 }
 
 
-// ===== iOS GIF FIX =====
-// iOS WebKit freezes GIF animations on images that load while their
-// parent has opacity:0 / visibility:hidden. The fix replaces each <img>
-// with a fresh clone so WebKit re-decodes the GIF from scratch.
-
-function restartGifs(container) {
-    var root = container || document;
-    var imgs = root.querySelectorAll('img');
-    for (var i = 0; i < imgs.length; i++) {
-        var img = imgs[i];
-        var src = img.getAttribute('src') || '';
-        // Strip any previous cache-bust params to get clean original src
-        var cleanSrc = src.replace(/[?&]_gif=\d+/, '');
-        if (cleanSrc && /\.gif$/i.test(cleanSrc)) {
-            // Clone the element, set a fresh src, and swap it in
-            var clone = img.cloneNode(true);
-            clone.src = cleanSrc + '?_gif=' + Date.now();
-            img.parentNode.replaceChild(clone, img);
-        }
-    }
-}
-
 // ===== INIT =====
 
 document.addEventListener('DOMContentLoaded', function () {
     // Start on intro screen
     showScreen('intro');
-
-    // Restart GIFs on the intro screen (visible at load)
-    restartGifs(document.getElementById('intro-screen'));
 
     // === ASCII art: individual char float + density-based opacity + random glow ===
     var asciiEl = document.querySelector('.intro-ascii-bg');

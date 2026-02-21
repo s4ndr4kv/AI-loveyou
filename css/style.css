@@ -378,8 +378,6 @@ button {
     vertical-align: middle;
     flex-shrink: 0;
     margin-left: clamp(3px, 1vw, 5px);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
 }
 
 /* 3D heart: bigger than other icons, vertically centered with the line */
@@ -777,8 +775,6 @@ button {
     height: auto;
     opacity: 0;
     transition: opacity 0.15s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
 }
 
 .analyzing-heart.visible {
@@ -893,8 +889,6 @@ button {
     height: auto;
     opacity: 0;
     transition: opacity 0.2s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
 }
 
 .loading-heart.visible {
@@ -1102,8 +1096,6 @@ button {
     width: auto;
     align-self: center;
     margin: 0 clamp(3px, 1vw, 6px);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
 }
 
 /* Match title font sizes — same scale as intro title */
