@@ -1906,20 +1906,23 @@ function randomRange(min, max) {
 
 
 // ===== iOS GIF FIX =====
-// iOS Safari freezes GIF animations on images that load while hidden
-// (opacity:0 / visibility:hidden). Re-setting the src forces a replay.
+// iOS WebKit freezes GIF animations on images that load while their
+// parent has opacity:0 / visibility:hidden. The fix replaces each <img>
+// with a fresh clone so WebKit re-decodes the GIF from scratch.
 
 function restartGifs(container) {
     var root = container || document;
     var imgs = root.querySelectorAll('img');
     for (var i = 0; i < imgs.length; i++) {
         var img = imgs[i];
-        var src = img.getAttribute('src');
-        if (src && /\.gif(\?|$)/i.test(src)) {
-            // Append or update a cache-bust param to force Safari to re-decode
-            var base = src.replace(/[?&]_gif=\d+/, '');
-            var sep = base.indexOf('?') === -1 ? '?' : '&';
-            img.src = base + sep + '_gif=' + Date.now();
+        var src = img.getAttribute('src') || '';
+        // Strip any previous cache-bust params to get clean original src
+        var cleanSrc = src.replace(/[?&]_gif=\d+/, '');
+        if (cleanSrc && /\.gif$/i.test(cleanSrc)) {
+            // Clone the element, set a fresh src, and swap it in
+            var clone = img.cloneNode(true);
+            clone.src = cleanSrc + '?_gif=' + Date.now();
+            img.parentNode.replaceChild(clone, img);
         }
     }
 }

@@ -1264,6 +1264,19 @@ button {
     animation: blink-text 2.5s ease-in-out infinite;
 }
 
+/* Reveal disclaimer — same style as intro footer */
+.reveal-disclaimer {
+    text-align: center;
+    font-family: var(--font-montreal);
+    font-style: italic;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+    padding: 0 var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
 /* ===== SCROLL INDICATOR ===== */
 
 @keyframes bounceDown {
