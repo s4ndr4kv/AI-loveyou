@@ -1489,6 +1489,11 @@ function showRoute(routeKey) {
                 showTimelinePhotos(route, function () {
                     setTimeout(function () {
                         cta.classList.add('visible');
+                        // Show disclaimer after CTA appears
+                        setTimeout(function () {
+                            var disclaimer = document.querySelector('.reveal-disclaimer');
+                            if (disclaimer) disclaimer.classList.add('visible');
+                        }, 600);
                     }, 400);
                 });
             }, 600);
