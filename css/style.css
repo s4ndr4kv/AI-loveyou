@@ -585,12 +585,12 @@ button {
 
 .quiz-nav-btn {
     font-family: var(--font-neuebit);
-    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-size: clamp(1.35rem, 3.8vw, 1.7rem);
     font-weight: 700;
     color: var(--color-red);
     border: none;
     background: none;
-    padding: 0;
+    padding: 4px 0;
     letter-spacing: 0.05em;
     transition: letter-spacing 0.3s var(--ease-out), opacity var(--transition-fast);
     cursor: pointer;
@@ -782,7 +782,41 @@ button {
 }
 
 
-/* ===== SCREEN 3: LOADING ===== */
+/* ===== SCREEN 4: LOADING ===== */
+
+#loading-screen {
+    background: var(--bg-primary);
+    transition: background-color 0.01s;
+}
+
+#loading-screen.red-bg {
+    background: #FF2634;
+}
+
+/* Override text colors when on red background */
+#loading-screen.red-bg .loading-header {
+    color: var(--bg-primary);
+}
+
+#loading-screen.red-bg .loading-icon {
+    color: var(--bg-primary);
+}
+
+#loading-screen.red-bg .loading-msg {
+    color: var(--bg-primary);
+}
+
+#loading-screen.red-bg .loading-msg .msg-prefix {
+    color: var(--bg-primary);
+}
+
+#loading-screen.red-bg .loading-msg.dimmed {
+    opacity: 0.4;
+}
+
+#loading-screen.red-bg .loading-cursor {
+    color: var(--bg-primary);
+}
 
 .loading-container {
     width: 100%;
@@ -844,13 +878,14 @@ button {
 /* Loading Hearts */
 .loading-hearts {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-top: var(--spacing-md);
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .loading-heart {
-    width: 16px;
+    width: 14px;
     height: auto;
     opacity: 0;
     transition: opacity 0.2s ease;
@@ -860,26 +895,20 @@ button {
     opacity: 1;
 }
 
+/* White hearts on red background */
+#loading-screen.red-bg .loading-heart {
+    filter: brightness(0) invert(1);
+}
 
-/* ===== SCREEN 4: REVEAL ===== */
+
+/* ===== SCREEN 5: REVEAL ===== */
 
 #reveal-screen {
     flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     overflow-y: auto;
     overflow-x: hidden;
-}
-
-.reveal-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-primary);
-    z-index: 100;
-    transition: opacity 1s var(--ease-out);
-}
-
-.reveal-overlay.fade-out {
-    opacity: 0;
-    pointer-events: none;
 }
 
 #confetti-canvas {
@@ -893,56 +922,22 @@ button {
 
 .reveal-container {
     width: 100%;
-    max-width: 560px;
-    padding: var(--spacing-xl) var(--spacing-md);
+    max-width: 520px;
+    padding: var(--spacing-xl) var(--spacing-md) var(--spacing-xl);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     position: relative;
     z-index: 50;
 }
 
-/* Tokyo Text */
-.reveal-destination {
-    margin-bottom: var(--spacing-xl);
-    opacity: 0;
-    transition: opacity 0.4s var(--ease-out);
-}
-
-.reveal-destination.visible {
-    opacity: 1;
-}
-
-.tokyo-text {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    line-height: 0.9;
-    color: var(--color-red);
-}
-
-/* Mixed font letters for TOKYO — same vibe as intro title */
-.t-editorial-reveal {
-    font-family: var(--font-editorial);
-    font-weight: 200;
-    font-size: clamp(2.5rem, 16vw, 64px);
-    line-height: 0.85;
-    display: inline-block;
-}
-
-.t-neuebit-reveal {
-    font-family: var(--font-neuebit);
-    font-weight: 700;
-    font-size: clamp(3.5rem, 22.75vw, 91px);
-    line-height: 0.85;
-    display: inline-block;
-}
-
-.t-montreal-reveal {
+/* Montreal italic for glitch resolve (used in "match !!") */
+.t-montreal-italic {
     font-family: var(--font-montreal);
-    font-weight: 700;
-    font-size: clamp(2.5rem, 16vw, 64px);
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(2.2rem, 14vw, 56px);
     line-height: 0.85;
     display: inline-block;
 }
@@ -956,6 +951,14 @@ button {
     display: inline-block;
     color: var(--color-red);
     animation: glitchJitter 0.1s steps(2) infinite, glitchShadow 0.15s steps(3) infinite;
+}
+
+/* Space/separator in glitch word */
+.glitch-space {
+    display: inline-block;
+    width: 0.3em;
+    font-size: clamp(2.5rem, 16vw, 64px);
+    line-height: 0.9;
 }
 
 @keyframes glitchJitter {
@@ -984,114 +987,37 @@ button {
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* AI Result Message */
-.reveal-message {
-    margin-bottom: var(--spacing-xl);
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
-    width: 100%;
-    max-width: 480px;
-    text-align: left;
-}
-
-.reveal-message.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.reveal-terminal {
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-    font-size: clamp(0.75rem, 2.2vw, 0.88rem);
-    line-height: 1.7;
-    color: var(--text-body);
-    letter-spacing: 0.01em;
-    cursor: pointer;
-}
-
-.reveal-terminal-text {
-    display: inline;
-}
-
-.reveal-cursor {
-    display: none;
-}
-
-/* Photos */
-.reveal-photos {
-    width: 100%;
-    margin-bottom: var(--spacing-xl);
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
-}
-
-.reveal-photos.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.photo-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--spacing-xs);
-}
-
-.photo-grid img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.photo-placeholder {
-    width: 100%;
-    height: 180px;
-    border: 1.5px dashed rgba(255, 38, 52, 0.2);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-dim);
-    font-family: var(--font-mondwest);
-    font-size: 0.85rem;
-}
-
-/* CTA */
-.reveal-cta {
-    opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
-    padding-bottom: var(--spacing-xl);
-}
-
-.reveal-cta.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.cta-text {
-    font-family: var(--font-mondwest);
-    font-size: clamp(0.9rem, 2.5vw, 1.05rem);
-    color: var(--color-red);
-    letter-spacing: 0.02em;
-    animation: blink-text 2.5s ease-in-out infinite;
-}
-
 @keyframes blink-text {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
 }
 
 
+/* ===== GACHA SCREEN ===== */
+
+#gacha-screen {
+    background: var(--bg-primary);
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.gacha-screen-container {
+    width: 100%;
+    height: 100dvh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
 /* ===== GACHA MACHINE ===== */
 
+/* The canvas is 500x500 (square) — JS sizes it via sizeGachaCanvas() */
 .gacha-viewport {
-    /* Break out of reveal-container padding to use full container width */
-    width: calc(100% + var(--spacing-md) * 2);
-    max-width: 500px;
-    margin-left: calc(var(--spacing-md) * -1);
-    margin-right: calc(var(--spacing-md) * -1);
     align-self: center;
     opacity: 0;
     transform: translateY(16px);
@@ -1103,10 +1029,25 @@ button {
     transform: translateY(0);
 }
 
+/* ===== PIXEL DISSOLVE OVERLAY ===== */
+
+#pixel-dissolve-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 500;
+    display: none;
+}
+
+#pixel-dissolve-canvas.active {
+    display: block;
+}
+
 #gacha-canvas {
     display: block;
-    width: 100%;
-    height: auto;
+    /* width/height set by JS sizeGachaCanvas() */
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     -webkit-image-rendering: pixelated;
@@ -1128,37 +1069,194 @@ button {
     display: block;
 }
 
-.route-detail-title {
-    font-family: var(--font-neuebit);
-    font-weight: 700;
-    font-size: clamp(1.2rem, 4vw, 1.6rem);
+/* ===== "IT'S A MATCH" TITLE ===== */
+
+.match-title {
     color: var(--color-red);
     margin-bottom: var(--spacing-sm);
+    line-height: 0.9;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-.route-detail-terminal {
+.match-title-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+}
+
+.match-title-line2 {
+    margin-top: -0.05em;
+}
+
+/* Heart gif inside the title */
+.match-title-heart {
+    height: clamp(44px, 16vw, 64px);
+    width: auto;
+    align-self: center;
+    margin: 0 clamp(3px, 1vw, 6px);
+}
+
+/* Match title font sizes — same scale as intro title */
+.match-title .t-montreal {
+    font-size: clamp(2.2rem, 14vw, 56px);
+}
+
+.match-title .t-neuebit {
+    font-size: clamp(3rem, 20vw, 80px);
+}
+
+.match-title .t-editorial {
+    font-size: clamp(2.2rem, 14vw, 56px);
+}
+
+.match-title .t-montreal-italic {
+    font-size: clamp(2.2rem, 14vw, 56px);
+}
+
+/* Glitch chars inside match title — same size as title fonts */
+.match-title .glitch-char {
+    font-size: clamp(2.5rem, 16vw, 64px);
+}
+
+.match-title .glitch-space {
+    font-size: clamp(2.5rem, 16vw, 64px);
+}
+
+/* ===== TIMELINE ===== */
+
+.timeline {
+    position: relative;
+    padding-left: 32px;
+    padding-top: var(--spacing-xs);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Track for the vertical red line */
+.timeline-line-track {
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+}
+
+/* The actual growing red line */
+.timeline-line {
+    width: 3px;
+    height: 0;
+    background: var(--color-red);
+}
+
+/* Container for all city stops */
+.timeline-stops {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Individual city stop */
+.timeline-stop {
+    position: relative;
+    padding-bottom: var(--spacing-md);
+    opacity: 0;
+}
+
+.timeline-stop:last-child {
+    padding-bottom: var(--spacing-sm);
+}
+
+.timeline-stop.visible {
+    opacity: 1;
+}
+
+/* Red dot on the line — vertically centered with city name text */
+.timeline-dot {
+    position: absolute;
+    left: -32px;
+    top: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--color-red);
+    transform: scale(0);
+    transition: transform 0.3s var(--ease-bounce);
+}
+
+.timeline-dot.visible {
+    transform: scale(1);
+}
+
+/* City name — lowercase with + prefix added by JS */
+.timeline-city {
+    font-family: var(--font-neuebit);
+    font-weight: 700;
+    font-size: clamp(1.35rem, 3.8vw, 1.7rem);
+    color: var(--color-red);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    text-transform: lowercase;
+}
+
+/* City description text */
+.timeline-text {
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
     font-size: clamp(0.75rem, 2.2vw, 0.88rem);
     line-height: 1.7;
     color: var(--text-body);
     letter-spacing: 0.01em;
-    margin-bottom: var(--spacing-lg);
     cursor: pointer;
 }
 
-.route-detail-text {
+.timeline-cursor {
     display: inline;
+    color: var(--color-red);
+    animation: blink-cursor 0.8s step-end infinite;
 }
 
-.route-detail-cursor {
-    display: none;
+/* ===== TIMELINE CTA ===== */
+
+.timeline-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
 }
+
+.timeline-cta.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.timeline-heart {
+    width: 48px;
+    height: auto;
+    margin-bottom: var(--spacing-sm);
+}
+
+.timeline-cta-text {
+    font-family: var(--font-editorial);
+    font-weight: 200;
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    color: var(--color-red);
+    text-align: center;
+    animation: blink-text 2.5s ease-in-out infinite;
+}
+
+/* ===== ROUTE PHOTOS ===== */
 
 .route-detail-photos {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-xs);
-    margin-bottom: var(--spacing-lg);
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
 }
 
 .route-detail-photos img {
@@ -1166,6 +1264,18 @@ button {
     aspect-ratio: 4 / 3;
     object-fit: cover;
     border-radius: 4px;
+}
+
+/* Staggered fade-in for route photos */
+.route-photo-fadein {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+
+.route-photo-fadein.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Photo placeholder for routes (before real images are added) */

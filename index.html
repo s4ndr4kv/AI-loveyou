@@ -126,7 +126,19 @@
         </div>
     </section>
 
-    <!-- ============ SCREEN 3: LOADING ============ -->
+    <!-- ============ SCREEN 3: GACHA ============ -->
+    <section id="gacha-screen" class="screen">
+        <div class="gacha-screen-container" id="gacha-screen-container">
+            <div class="gacha-viewport" id="gacha-viewport">
+                <canvas id="gacha-canvas" width="500" height="500"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ PIXEL DISSOLVE OVERLAY ============ -->
+    <canvas id="pixel-dissolve-canvas"></canvas>
+
+    <!-- ============ SCREEN 4: LOADING ============ -->
     <section id="loading-screen" class="screen">
         <div class="loading-container">
             <div class="loading-header">
@@ -146,40 +158,41 @@
         </div>
     </section>
 
-    <!-- ============ SCREEN 4: REVEAL ============ -->
+    <!-- ============ SCREEN 5: REVEAL ============ -->
     <section id="reveal-screen" class="screen">
-        <div class="reveal-overlay" id="reveal-overlay"></div>
-
         <canvas id="confetti-canvas"></canvas>
 
         <div class="reveal-container">
-            <div class="reveal-destination" id="reveal-destination">
-                <h1 class="tokyo-text" id="tokyo-glitch-target"></h1>
-            </div>
-
-            <!-- ====== AI RESULT MESSAGE ====== -->
-            <div class="reveal-message" id="reveal-message">
-                <div class="reveal-terminal">
-                    <p class="reveal-terminal-text" id="reveal-terminal-text"></p>
-                    <span class="cursor reveal-cursor" id="reveal-cursor">_</span>
-                </div>
-            </div>
-            <!-- ====== END AI RESULT MESSAGE ====== -->
-
-            <!-- ====== GACHA MACHINE ====== -->
-            <div class="gacha-viewport" id="gacha-viewport">
-                <canvas id="gacha-canvas" width="500" height="500"></canvas>
-            </div>
 
             <!-- ====== ROUTE DETAIL VIEW ====== -->
             <div class="route-detail" id="route-detail">
-                <div class="route-detail-content" id="route-detail-content">
-                    <h2 class="route-detail-title" id="route-detail-title"></h2>
-                    <div class="route-detail-terminal">
-                        <p class="route-detail-text" id="route-detail-text"></p>
-                        <span class="cursor route-detail-cursor" id="route-detail-cursor">_</span>
+                <!-- Title: It's ❤️ a \n match !! -->
+                <h2 class="match-title" id="match-title">
+                    <span class="match-title-line">
+                        <span class="t-montreal">I</span><span class="t-neuebit">t'</span><span class="t-montreal">s</span><img class="match-title-heart" src="img/3dheart.gif" alt=""><span class="t-neuebit">a</span>
+                    </span>
+                    <span class="match-title-line match-title-line2">
+                        <span id="match-glitch-target"></span>
+                    </span>
+                </h2>
+
+                <!-- Timeline -->
+                <div class="timeline" id="timeline">
+                    <div class="timeline-line-track">
+                        <div class="timeline-line" id="timeline-line"></div>
                     </div>
-                    <div class="route-detail-photos" id="route-detail-photos"></div>
+                    <div class="timeline-stops" id="timeline-stops">
+                        <!-- JS will populate city stops here -->
+                    </div>
+                </div>
+
+                <!-- Photos -->
+                <div class="route-detail-photos" id="route-detail-photos"></div>
+
+                <!-- CTA: heart centered, then text centered -->
+                <div class="timeline-cta" id="timeline-cta">
+                    <img class="timeline-heart" src="img/heart.gif" alt="">
+                    <span class="timeline-cta-text">Let's start packing !!</span>
                 </div>
             </div>
             <!-- ====== END ROUTES ====== -->

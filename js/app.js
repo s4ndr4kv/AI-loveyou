@@ -4,6 +4,7 @@ let currentScreen = 'intro';
 let currentQuestion = 0;
 let answers = [];
 let typingTimeout = null;
+let gachaRouteResult = null; // stores 'a' or 'b' after gacha win
 
 // ===== CONSTANTS =====
 
@@ -13,23 +14,33 @@ const ANALYZING_DELAY = 1800;
 
 const INTRO_TEXT = "Hello. I am an AI designed to study your behavioural patterns in order to optimize your future. I've been fed your context, experiences and preferences. With a few questions I'll be able to present you the best options for your next destination, tailored just for you.";
 
+const COSMIC_LUCK_TEXT = "For higher accuracy, we'll check your cosmic luck index";
+
 const REVEAL_TEXT = "After cross-referencing 12,847 behavioural data points, mapping your emotional response curves against 943 destination profiles, factoring in circadian rhythm compatibility, culinary preference matrices, and running 3 rounds of quantum-probabilistic analysis... the algorithm has converged with 99.97% confidence.";
 
 // Glitch decode constants
-var GLITCH_KANJI = '\u6771\u4EAC';  // 東京
 var GLITCH_CHARS = '\u6771\u4EAC\u90FD\u5E02\u8857\u9053\u5149\u95C7\u5922\u5E7B\u98A8\u96F7\u706B\u6C34\u5929\u5730\u661F\u6708\u82B1\u9CE5!@#$%^&*<>/|~+=_ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-var GLITCH_FINAL_LETTERS = ['T', 'O', 'K', 'Y', 'O'];
-var GLITCH_FINAL_CLASSES = [
-    't-editorial-reveal',
-    't-neuebit-reveal',
-    't-montreal-reveal',
-    't-neuebit-reveal',
-    't-neuebit-reveal'
-];
+var GLITCH_FONT_CLASSES = ['t-editorial-reveal', 't-neuebit-reveal', 't-montreal-reveal'];
 var GLITCH_FLICKER_MS = 50;
 var GLITCH_PHASE_SPLIT = 700;
 var GLITCH_RESOLVE_START = 1000;
-var GLITCH_RESOLVE_STAGGER = 200;
+var GLITCH_RESOLVE_STAGGER = 150;
+
+// Assign mixed font classes to letters in a word (cycle through font pool)
+function buildGlitchClasses(word) {
+    var classes = [];
+    var pool = GLITCH_FONT_CLASSES;
+    var poolIdx = 0;
+    for (var i = 0; i < word.length; i++) {
+        if (word[i] === ' ' || word[i] === '+') {
+            classes.push('glitch-space');
+        } else {
+            classes.push(pool[poolIdx % pool.length]);
+            poolIdx++;
+        }
+    }
+    return classes;
+}
 
 const questions = [
     {
@@ -44,7 +55,7 @@ const questions = [
     {
         question: "In an encounter with your alternate self from another dimension, what is your most likely reaction?",
         options: [
-            "Indifference",
+            "I'd seduce his wife so I'd have two gorgeous wives",
             "Disbelief",
             "\"Finally!\""
         ],
@@ -53,6 +64,7 @@ const questions = [
     {
         question: "Where was this photo taken?",
         hasImage: true,
+        imageSrc: "img/raulinho.jpg",
         options: [
             "Bali",
             "Miami",
@@ -61,20 +73,20 @@ const questions = [
         analyzingMsg: "Analyzing geographical neural patterns"
     },
     {
-        question: "Pick the breakfast that calls to you.",
+        question: "You'd only wake up before 9 for breakfast...",
         options: [
-            "A perfectly crafted ritual \u2014 warm broth, delicate bites, everything in its place",
-            "Something sweet and fluffy from a tiny hidden shop",
-            "The most photogenic plate you've ever seen"
+            "Sweets and cakes and pancakes and donuts and cinnamon rolls!",
+            "Are you kidding? I wouldn't wake up before 9 for anything or anyone.",
+            "A Michelin-rated breakfast, of course."
         ],
         analyzingMsg: "Mapping gustatory preference matrix"
     },
     {
-        question: "The algorithm needs one final data point. Choose a vibe.",
+        question: "Choose a vibe.",
         options: [
-            "Neon-lit streets and midnight ramen",
-            "Bullet trains and cherry blossoms",
-            "Organized chaos and vending machines everywhere"
+            "Neon-lit streets and retro game stores",
+            "Nature, fog, mountains, birds singing",
+            "Getting lost checking infinite street food stalls"
         ],
         analyzingMsg: "Running quantum destination algorithm"
     }
@@ -85,8 +97,6 @@ const loadingMessages = [
     { text: "Cross-referencing with 847 global destinations...", duration: 1400 },
     { text: "Calculating optimal humidity preferences...", duration: 1200 },
     { text: "Factoring in star sign compatibility with time zones...", duration: 1300 },
-    { text: "Running quantum destination algorithm...", duration: 1400 },
-    { text: "Almost there... recalibrating for perfection...", duration: 1500 },
     { text: "Result locked. Confidence: 99.97%", duration: 1000 }
 ];
 
@@ -94,14 +104,26 @@ var ROUTES = {
     a: {
         label: 'Route \u03b1',
         title: 'Mountain Protocol',
-        text: 'Sub-algorithm detected a 94.2% compatibility with altitude-based serotonin optimization. Recommended sequence: 3 days in Tokyo for baseline urban calibration, followed by deployment to Takayama (traditional merchant district, morning market protocol), Shirakawa-go (UNESCO-classified thatched architecture, optimal for visual cortex stimulation), and Kusatsu (volcanic onsen complex, 97.3% stress dissolution rate). Total route efficiency: exceptional.',
-        photos: ['img/route-a-1.jpg', 'img/route-a-2.jpg', 'img/route-a-3.jpg', 'img/route-a-4.jpg']
+        glitchWord: 'RURAL JAPAN',
+        glitchKanji: '\u7530\u820E\u65E5\u672C',  // 田舎日本
+        cities: [
+            { name: 'Tokyo', text: 'Minimum 3 days of mandatory baseline urban calibration. Retro-futuristic, harajuku-coded sensory warm-up.' },
+            { name: 'Aomori', text: 'Northbound Shinkansen transfer at 320 km/h. 8,000-year-old UNESCO beech forest, visual cortex saturation at peak. Hirosaki Castle cherry protocol: 2,600 specimens across 52 variants.' },
+            { name: 'Akita', text: 'Nyuto Onsen sulphur-spring complex at 600m elevation, 98.1% stress dissolution rate. Kakunodate samurai district: Edo-period neural imprint active.' }
+        ],
+        photos: ['img/route photos/tokyo.jpg', 'img/route photos/hirosakicastle.jpg', 'img/route photos/aomori.jpg', 'img/route photos/akita.jpg']
     },
     b: {
         label: 'Route \u03b2',
         title: 'Island Protocol',
-        text: 'Cross-archipelago analysis reveals 96.1% match with subtropical neural enhancement patterns. Recommended sequence: 3 days in Tokyo for sensory warm-up, then transit to Taipei (night market immersion therapy, 847 food stalls mapped), Jiufen (fog-altitude nostalgia coefficient: 0.94), Taroko Gorge (geological awe-induction, marble canyon protocol), and Beitou (geothermal recovery phase, sulphur spring variant). Total route efficiency: extraordinary.',
-        photos: ['img/route-b-1.jpg', 'img/route-b-2.jpg', 'img/route-b-3.jpg', 'img/route-b-4.jpg']
+        glitchWord: 'JAPAN+TAIWAN',
+        glitchKanji: '\u65E5\u672C\u53F0\u6E7E',  // 日本台湾
+        cities: [
+            { name: 'Tokyo', text: 'Minimum 3 days of mandatory baseline urban calibration. Neon-lit sensory overload protocol before first-ever Taiwan deployment.' },
+            { name: 'Taipei', text: 'Cross-strait transit complete. First contact with Taiwanese territory confirmed. Night market immersion therapy: 847 food stalls mapped, street-level dopamine at peak. Beitou geothermal recovery phase, sulphur spring variant.' },
+            { name: 'Jiufen', text: 'Fog-altitude nostalgia coefficient: 0.94. Mountain village neural imprint active. Taroko Gorge geological awe-induction, marble canyon protocol. Visual cortex overload: confirmed.' }
+        ],
+        photos: ['img/route photos/tokyo.jpg', 'img/route photos/taipeimarket.jpg', 'img/route photos/jiufentaroko.jpg', 'img/route photos/taipei.jpg']
     }
 };
 
@@ -127,12 +149,20 @@ function typeText(element, text, onComplete, cursorEl) {
     var index = 0;
     var cursor = cursorEl || document.getElementById('typing-cursor');
     var finished = false;
+    // Create a text node to type into, so cursor span stays as sibling
+    var textNode = document.createTextNode('');
+    // If cursor is inside this element, insert text node before it
+    if (cursor && cursor.parentElement === element) {
+        element.insertBefore(textNode, cursor);
+    } else {
+        element.appendChild(textNode);
+    }
 
     function finish() {
         if (finished) return;
         finished = true;
         clearTimeout(typingTimeout);
-        element.textContent = text;
+        textNode.textContent = text;
         if (cursor) cursor.style.display = 'inline';
         if (onComplete) onComplete();
     }
@@ -141,7 +171,7 @@ function typeText(element, text, onComplete, cursorEl) {
         if (finished) return;
         if (index < text.length) {
             var char = text[index];
-            element.textContent += char;
+            textNode.textContent += char;
             index++;
 
             var delay = TYPING_SPEED_MIN + Math.random() * (TYPING_SPEED_MAX - TYPING_SPEED_MIN);
@@ -207,7 +237,9 @@ function showQuestion(index) {
     }
 
     var imageHtml = '';
-    if (q.hasImage) {
+    if (q.hasImage && q.imageSrc) {
+        imageHtml = '<img class="card-image" src="' + q.imageSrc + '" alt="">';
+    } else if (q.hasImage) {
         imageHtml = '<div class="card-image-placeholder" style="width:100%;height:160px;border:1.5px dashed rgba(255,38,52,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;color:rgba(255,38,52,0.45);font-family:var(--font-mondwest);font-size:0.8rem;margin-bottom:var(--spacing-md);">' +
             '<span>Photo placeholder</span></div>';
     }
@@ -272,10 +304,11 @@ function showQuestion(index) {
             } else {
                 var bar = document.getElementById('progress-bar');
                 bar.style.width = '100%';
-                setTimeout(function () {
-                    showScreen('loading');
-                    startLoadingSequence();
-                }, 400);
+                // Show cosmic luck analyzing message (longer delay), then gacha
+                showAnalyzingMessage(COSMIC_LUCK_TEXT, function () {
+                    showScreen('gacha');
+                    initGacha();
+                }, 2800);
             }
         }, 400);
     });
@@ -295,7 +328,8 @@ function showQuestion(index) {
     }
 }
 
-function showAnalyzingMessage(msg, onComplete) {
+function showAnalyzingMessage(msg, onComplete, customDelay) {
+    var delay = customDelay || ANALYZING_DELAY;
     var el = document.getElementById('analyzing-msg');
     var textEl = document.getElementById('analyzing-text');
     var hearts = document.querySelectorAll('.analyzing-heart');
@@ -319,21 +353,22 @@ function showAnalyzingMessage(msg, onComplete) {
         });
     });
 
-    // Show hearts one by one
+    // Show hearts one by one — spread across the delay
+    var heartInterval = Math.min(280, (delay - 400) / hearts.length);
     for (var i = 0; i < hearts.length; i++) {
         (function (idx) {
             setTimeout(function () {
                 hearts[idx].classList.add('visible');
-            }, 300 + idx * 280);
+            }, 300 + idx * heartInterval);
         })(i);
     }
 
-    // End after ANALYZING_DELAY
+    // End after delay
     setTimeout(function () {
         el.classList.remove('visible');
         textEl.classList.remove('visible');
         onComplete();
-    }, ANALYZING_DELAY);
+    }, delay);
 }
 
 
@@ -352,22 +387,7 @@ function startLoadingSequence() {
         hearts[h].classList.remove('visible');
     }
 
-    var totalDuration = 0;
-    for (var i = 0; i < loadingMessages.length; i++) {
-        totalDuration += loadingMessages[i].duration;
-    }
-
-    // Schedule hearts based on progress thresholds (20%, 40%, 60%, 80%, 100%)
-    var elapsed = 0;
-    for (var h = 0; h < hearts.length; h++) {
-        var threshold = totalDuration * ((h + 1) / hearts.length);
-        (function (idx, delay) {
-            setTimeout(function () {
-                hearts[idx].classList.add('visible');
-            }, delay);
-        })(h, threshold);
-    }
-
+    var heartIndex = 0;
     var msgIndex = 0;
 
     function typeLoadingMessage(msgEl, textSpan, text, onComplete) {
@@ -393,8 +413,14 @@ function startLoadingSequence() {
     function showNextMessage() {
         if (msgIndex >= loadingMessages.length) {
             setTimeout(function () {
-                showScreen('reveal');
-                startRevealSequence();
+                // Prepare reveal content + start glitch BEFORE sliding
+                // so "It's a match!!" is already animating as the screen slides up
+                prepareRevealContent();
+                startRevealAnimations(gachaRouteResult);
+                // Slide loading screen up, reveal screen appears from below
+                slideLoadingToReveal(function () {
+                    // Animations already running — nothing else needed
+                });
             }, 800);
             return;
         }
@@ -426,6 +452,11 @@ function startLoadingSequence() {
         msgIndex++;
 
         typeLoadingMessage(msgEl, textSpan, msg.text, function () {
+            // Show one heart per completed message
+            if (heartIndex < hearts.length) {
+                hearts[heartIndex].classList.add('visible');
+                heartIndex++;
+            }
             var pauseAfter = Math.max(200, msg.duration - (msg.text.length * LOADING_TYPE_SPEED));
             setTimeout(showNextMessage, pauseAfter);
         });
@@ -437,12 +468,24 @@ function startLoadingSequence() {
 
 // ===== GLITCH DECODE =====
 
-function startGlitchDecode(onComplete) {
-    var target = document.getElementById('tokyo-glitch-target');
-    var destEl = document.getElementById('reveal-destination');
+function startGlitchDecode(onComplete, word, kanji, targetEl, containerEl, customClasses) {
+    var target = targetEl || document.getElementById('match-glitch-target');
+    var destEl = containerEl || document.getElementById('match-title');
     var finished = false;
     var timeouts = [];
     var intervals = [];
+
+    // Build letters and classes from word
+    var finalLetters = (word || 'TOKYO').split('');
+    var finalClasses = customClasses || buildGlitchClasses(word || 'TOKYO');
+    var kanjiStr = kanji || '\u6771\u4EAC';
+    // Count non-space letters for resolving
+    var resolveIndices = [];
+    for (var i = 0; i < finalLetters.length; i++) {
+        if (finalLetters[i] !== ' ' && finalLetters[i] !== '+') {
+            resolveIndices.push(i);
+        }
+    }
 
     function randomChar() {
         return GLITCH_CHARS.charAt(Math.floor(Math.random() * GLITCH_CHARS.length));
@@ -455,10 +498,18 @@ function startGlitchDecode(onComplete) {
         for (var i = 0; i < intervals.length; i++) clearInterval(intervals[i]);
         // Set final state
         target.innerHTML = '';
-        for (var i = 0; i < GLITCH_FINAL_LETTERS.length; i++) {
+        for (var i = 0; i < finalLetters.length; i++) {
             var span = document.createElement('span');
-            span.className = GLITCH_FINAL_CLASSES[i];
-            span.textContent = GLITCH_FINAL_LETTERS[i];
+            if (finalLetters[i] === ' ') {
+                span.className = 'glitch-space';
+                span.innerHTML = '&nbsp;';
+            } else if (finalLetters[i] === '+') {
+                span.className = 'glitch-space';
+                span.textContent = '+';
+            } else {
+                span.className = finalClasses[i];
+                span.textContent = finalLetters[i];
+            }
             target.appendChild(span);
         }
         if (onComplete) onComplete();
@@ -474,13 +525,13 @@ function startGlitchDecode(onComplete) {
     // Make destination visible (opacity fade only)
     destEl.classList.add('visible');
 
-    // Phase 1: Show kanji 東京
+    // Phase 1: Show kanji
     target.innerHTML = '';
     var kanjiSpans = [];
-    for (var k = 0; k < GLITCH_KANJI.length; k++) {
+    for (var k = 0; k < kanjiStr.length; k++) {
         var s = document.createElement('span');
         s.className = 'glitch-char';
-        s.textContent = GLITCH_KANJI[k];
+        s.textContent = kanjiStr[k];
         target.appendChild(s);
         kanjiSpans.push(s);
     }
@@ -498,56 +549,71 @@ function startGlitchDecode(onComplete) {
     }, 300);
     timeouts.push(t2);
 
-    // Phase 3: Split to 5 slots
+    // Phase 3: Split to N slots (one per letter in word)
     var t3 = setTimeout(function () {
         if (finished) return;
-        // Clear all phase 2 intervals
         for (var i = 0; i < intervals.length; i++) clearInterval(intervals[i]);
         intervals = [];
 
         target.innerHTML = '';
-        var fiveSpans = [];
-        var fiveIntervals = [];
+        var allSpans = [];
+        var flickerIntervals = [];
 
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < finalLetters.length; i++) {
             var span = document.createElement('span');
+            if (finalLetters[i] === ' ') {
+                span.className = 'glitch-space';
+                span.innerHTML = '&nbsp;';
+                target.appendChild(span);
+                allSpans.push(span);
+                flickerIntervals.push(null);
+                continue;
+            }
+            if (finalLetters[i] === '+') {
+                span.className = 'glitch-space';
+                span.textContent = '+';
+                target.appendChild(span);
+                allSpans.push(span);
+                flickerIntervals.push(null);
+                continue;
+            }
             span.className = 'glitch-char';
             span.textContent = randomChar();
             target.appendChild(span);
-            fiveSpans.push(span);
+            allSpans.push(span);
 
-            // Individual flicker for each slot
             (function (idx) {
                 var iv = setInterval(function () {
                     if (finished) return;
-                    // Bias toward final letter as we approach resolve
-                    if (Math.random() < 0.15) {
-                        fiveSpans[idx].textContent = GLITCH_FINAL_LETTERS[idx];
+                    if (Math.random() < 0.12) {
+                        allSpans[idx].textContent = finalLetters[idx];
                     } else {
-                        fiveSpans[idx].textContent = randomChar();
+                        allSpans[idx].textContent = randomChar();
                     }
                 }, GLITCH_FLICKER_MS);
-                fiveIntervals.push(iv);
+                flickerIntervals.push(iv);
                 intervals.push(iv);
             })(i);
         }
 
-        // Phase 4: Staggered resolution
+        // Phase 4: Staggered resolution of non-space letters
         var resolveBase = GLITCH_RESOLVE_START - GLITCH_PHASE_SPLIT;
-        for (var i = 0; i < 5; i++) {
-            (function (idx) {
+        for (var ri = 0; ri < resolveIndices.length; ri++) {
+            (function (resolveIdx, letterIdx) {
                 var t = setTimeout(function () {
                     if (finished) return;
-                    clearInterval(fiveIntervals[idx]);
-                    fiveSpans[idx].textContent = GLITCH_FINAL_LETTERS[idx];
-                    fiveSpans[idx].className = GLITCH_FINAL_CLASSES[idx] + ' glitch-resolved';
+                    if (flickerIntervals[letterIdx]) {
+                        clearInterval(flickerIntervals[letterIdx]);
+                    }
+                    allSpans[letterIdx].textContent = finalLetters[letterIdx];
+                    allSpans[letterIdx].className = finalClasses[letterIdx] + ' glitch-resolved';
 
-                    if (idx === 4) {
+                    if (resolveIdx === resolveIndices.length - 1) {
                         finish();
                     }
-                }, resolveBase + idx * GLITCH_RESOLVE_STAGGER);
+                }, resolveBase + resolveIdx * GLITCH_RESOLVE_STAGGER);
                 timeouts.push(t);
-            })(i);
+            })(ri, resolveIndices[ri]);
         }
     }, GLITCH_PHASE_SPLIT);
     timeouts.push(t3);
@@ -915,6 +981,37 @@ function gachaAnimLoop(time) {
     gachaState.animFrame = requestAnimationFrame(gachaAnimLoop);
 }
 
+// Size canvas to fill screen — same approach as gacha.html sizeCanvas()
+function sizeGachaCanvas() {
+    var canvas = gachaState.canvas;
+    if (!canvas) return;
+
+    var container = document.getElementById('gacha-screen-container');
+    var vh = (container ? container.clientHeight : window.innerHeight) || window.innerHeight;
+
+    // Size based on HEIGHT only — the machine sprite is narrow inside the 500x500 canvas,
+    // so the square canvas will overflow horizontally on portrait screens.
+    // overflow:hidden on the container clips the empty sides, making the machine fill the screen height.
+    var dpr = window.devicePixelRatio || 1;
+    var pixelScale = Math.max(1, Math.round(vh * dpr / 500));
+    var bufferSize = 500 * pixelScale;
+    var displaySize = bufferSize / dpr;
+
+    canvas.style.width = displaySize + 'px';
+    canvas.style.height = displaySize + 'px';
+    canvas.width = bufferSize;
+    canvas.height = bufferSize;
+
+    gachaState.canvasScale = pixelScale;
+    gachaState.ctx = canvas.getContext('2d');
+    gachaState.ctx.imageSmoothingEnabled = false;
+    gachaState.ctx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
+
+    if (gachaState.loaded) {
+        renderGacha();
+    }
+}
+
 function initGacha() {
     var viewport = document.getElementById('gacha-viewport');
     var canvas = document.getElementById('gacha-canvas');
@@ -935,28 +1032,15 @@ function initGacha() {
     gachaState.hiddenPlush = null;
     gachaState.lastTime = performance.now();
 
+    // Size canvas using JS (same approach as gacha.html)
+    sizeGachaCanvas();
+
     // Load images then start
     loadGachaImages(function () {
         viewport.classList.add('visible');
-
-        // Size canvas buffer for crisp pixel art on retina screens
-        // Snap to integer pixel multiples to prevent sub-pixel artifacts
-        requestAnimationFrame(function () {
-            var dpr = window.devicePixelRatio || 1;
-            var displayWidth = canvas.clientWidth || 375;
-            var pixelScale = Math.max(1, Math.round(displayWidth * dpr / 500));
-            var bufferSize = 500 * pixelScale;
-            canvas.width = bufferSize;
-            canvas.height = bufferSize;
-
-            gachaState.canvasScale = pixelScale;
-            gachaState.ctx = canvas.getContext('2d');
-            gachaState.ctx.imageSmoothingEnabled = false;
-            gachaState.ctx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
-
-            renderGacha();
-            gachaState.animFrame = requestAnimationFrame(gachaAnimLoop);
-        });
+        sizeGachaCanvas();
+        renderGacha();
+        gachaState.animFrame = requestAnimationFrame(gachaAnimLoop);
     });
 
     // Tap/click + drag/swipe handler on canvas (only attach once)
@@ -1078,6 +1162,11 @@ function initGacha() {
             dragState.active = false;
             dragState.moved = false;
         });
+
+        // Resize handler — re-calculate canvas size on window resize
+        window.addEventListener('resize', function () {
+            sizeGachaCanvas();
+        });
     }
 }
 
@@ -1150,30 +1239,47 @@ function startSuccessDrop(routeKey, plushKey) {
 
     var dropStart = performance.now();
     var dropStartY = gachaState.dropY;
+    var dissolveTriggered = false;
+
+    // Store route result early
+    gachaRouteResult = routeKey;
 
     function animateDrop() {
         var elapsed = performance.now() - dropStart;
         var t = Math.min(elapsed / DROP_DURATION, 1);
         t = t * t;
         gachaState.dropY = dropStartY + DROP_DISTANCE * t;
+
+        // Start pixel dissolve while plush is still falling (~200ms into the drop)
+        if (!dissolveTriggered && elapsed >= 200) {
+            dissolveTriggered = true;
+            startPixelDissolve(function () {
+                // Screen is now fully red — switch to loading with red bg behind it
+                var loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.classList.add('red-bg');
+                showScreen('loading');
+                // Small delay then remove dissolve canvas (loading is red underneath)
+                var dissolveCanvas = document.getElementById('pixel-dissolve-canvas');
+                setTimeout(function () {
+                    dissolveCanvas.classList.remove('active');
+                    dissolveCanvas.style.transition = '';
+                    dissolveCanvas.style.opacity = '';
+                    dissolveCanvas.width = 0;
+                    dissolveCanvas.height = 0;
+                }, 100);
+                startLoadingSequence();
+            });
+        }
+
         if (elapsed < DROP_DURATION) {
             requestAnimationFrame(animateDrop);
         } else {
             gachaState.dropping = false;
             gachaState.dropPlush = null;
-
-            gachaState.phase = 'fadeout';
-            var viewport = document.getElementById('gacha-viewport');
-            viewport.style.opacity = '0';
-            viewport.style.transform = 'translateY(-16px)';
-            setTimeout(function () {
-                viewport.style.display = 'none';
-                if (gachaState.animFrame) {
-                    cancelAnimationFrame(gachaState.animFrame);
-                }
-                gachaState.phase = 'done';
-                showRoute(routeKey);
-            }, 500);
+            gachaState.phase = 'done';
+            if (gachaState.animFrame) {
+                cancelAnimationFrame(gachaState.animFrame);
+            }
         }
     }
     requestAnimationFrame(animateDrop);
@@ -1320,61 +1426,384 @@ function grabSequence() {
 
 function showRoute(routeKey) {
     var route = ROUTES[routeKey];
-    var detail = document.getElementById('route-detail');
-    detail.classList.add('visible');
 
-    // Set title
-    document.getElementById('route-detail-title').textContent = route.label + ' \u2014 ' + route.title;
+    var stopsContainer = document.getElementById('timeline-stops');
+    var timelineLine = document.getElementById('timeline-line');
+    var cta = document.getElementById('timeline-cta');
 
-    // Type the description text
-    var textEl = document.getElementById('route-detail-text');
-    var cursor = document.getElementById('route-detail-cursor');
-    textEl.textContent = '';
+    // Reset
+    stopsContainer.innerHTML = '';
+    timelineLine.style.height = '0px';
+    cta.classList.remove('visible');
 
-    typeText(textEl, route.text, function () {
-        // Show photos after typing finishes
-        var photosEl = document.getElementById('route-detail-photos');
-        photosEl.innerHTML = '';
-        for (var i = 0; i < route.photos.length; i++) {
-            var placeholder = document.createElement('div');
-            placeholder.className = 'route-photo-placeholder';
-            placeholder.textContent = 'Photo ' + (i + 1);
-            photosEl.appendChild(placeholder);
+    // Build all city stop DOM elements (hidden initially)
+    var cities = route.cities;
+    var stopEls = [];
+    for (var i = 0; i < cities.length; i++) {
+        var stop = document.createElement('div');
+        stop.className = 'timeline-stop';
+
+        var dot = document.createElement('div');
+        dot.className = 'timeline-dot';
+
+        var cityName = document.createElement('div');
+        cityName.className = 'timeline-city';
+        cityName.textContent = '+ ' + cities[i].name;
+
+        var textEl = document.createElement('p');
+        textEl.className = 'timeline-text';
+
+        stop.appendChild(dot);
+        stop.appendChild(cityName);
+        stop.appendChild(textEl);
+        stopsContainer.appendChild(stop);
+
+        stopEls.push({ stop: stop, dot: dot, textEl: textEl, text: cities[i].text });
+    }
+
+    // Start timeline animation
+    var LINE_GROW_DURATION = 600;
+    var currentStop = 0;
+
+    function animateToNextStop() {
+        if (currentStop >= stopEls.length) {
+            // All cities done — show photos
+            setTimeout(function () {
+                showTimelinePhotos(route, function () {
+                    // After photos fade in, show CTA (heart + text centered)
+                    setTimeout(function () {
+                        cta.classList.add('visible');
+                    }, 400);
+                });
+            }, 400);
+            return;
         }
-    }, cursor);
+
+        var el = stopEls[currentStop];
+        el.stop.style.opacity = '1';
+
+        // Calculate target line height: center of this stop's dot
+        var stopTop = el.stop.offsetTop;
+        var dotOffset = parseFloat(getComputedStyle(el.dot).top) || 0;
+        var dotCenter = stopTop + dotOffset + 7; // 15px dot, center ~7px
+
+        // Animate line growing
+        var lineStart = parseFloat(timelineLine.style.height) || 0;
+        var lineTarget = dotCenter;
+        var growStart = performance.now();
+
+        function growLine() {
+            var elapsed = performance.now() - growStart;
+            var t = Math.min(elapsed / LINE_GROW_DURATION, 1);
+            t = 1 - Math.pow(1 - t, 2);
+            var currentH = lineStart + (lineTarget - lineStart) * t;
+            timelineLine.style.height = currentH + 'px';
+
+            if (t < 1) {
+                requestAnimationFrame(growLine);
+            } else {
+                timelineLine.style.height = lineTarget + 'px';
+                el.dot.classList.add('visible');
+
+                setTimeout(function () {
+                    var cursor = document.createElement('span');
+                    cursor.className = 'timeline-cursor';
+                    cursor.textContent = '_';
+                    el.textEl.appendChild(cursor);
+
+                    typeText(el.textEl, el.text, function () {
+                        cursor.remove();
+                        currentStop++;
+                        setTimeout(animateToNextStop, 300);
+                    }, cursor);
+                }, 150);
+            }
+        }
+
+        requestAnimationFrame(growLine);
+    }
+
+    // Start after a short delay
+    setTimeout(animateToNextStop, 500);
+}
+
+function showTimelinePhotos(route, onComplete) {
+    var photosEl = document.getElementById('route-detail-photos');
+    photosEl.innerHTML = '';
+    var total = route.photos.length;
+    for (var i = 0; i < total; i++) {
+        (function (idx) {
+            var img = document.createElement('img');
+            img.className = 'route-photo-fadein';
+            img.src = route.photos[idx];
+            img.alt = '';
+            photosEl.appendChild(img);
+            setTimeout(function () {
+                img.classList.add('visible');
+                if (idx === total - 1 && onComplete) {
+                    setTimeout(onComplete, 400);
+                }
+            }, 300 * (idx + 1));
+        })(i);
+    }
+    if (total === 0 && onComplete) {
+        onComplete();
+    }
+}
+
+
+// ===== SLIDE TRANSITION: LOADING → REVEAL =====
+
+function slideLoadingToReveal(onComplete) {
+    var loadingScreen = document.getElementById('loading-screen');
+    var revealScreen = document.getElementById('reveal-screen');
+
+    // Disable CSS transitions FIRST, then make visible — prevents fade-in fighting the slide
+    revealScreen.style.transition = 'none';
+    revealScreen.style.opacity = '1';
+    revealScreen.style.visibility = 'visible';
+    revealScreen.style.transform = 'translateY(100%)';
+    revealScreen.classList.add('active');
+
+    // Both on same z-index plane — loading on top since it's visible first
+    loadingScreen.style.zIndex = '20';
+    revealScreen.style.zIndex = '20';
+
+    // Force reflow so the initial translateY(100%) is applied before animating
+    revealScreen.offsetHeight;
+
+    var duration = 1400;
+    var startTime = performance.now();
+
+    function animateSlide() {
+        var elapsed = performance.now() - startTime;
+        var t = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        t = 1 - Math.pow(1 - t, 3);
+
+        // Both move up by the same amount — they're glued together
+        // Loading: 0% → -100% (exits upward)
+        // Reveal: 100% → 0% (enters from below)
+        var offset = t * 100;
+        loadingScreen.style.transform = 'translateY(' + (-offset) + '%)';
+        revealScreen.style.transform = 'translateY(' + (100 - offset) + '%)';
+
+        if (t < 1) {
+            requestAnimationFrame(animateSlide);
+        } else {
+            // Clean up
+            loadingScreen.classList.remove('active', 'red-bg');
+            loadingScreen.style.transform = '';
+            loadingScreen.style.zIndex = '';
+            revealScreen.style.transform = '';
+            revealScreen.style.transition = '';
+            revealScreen.style.zIndex = '';
+            if (onComplete) onComplete();
+        }
+    }
+
+    requestAnimationFrame(animateSlide);
 }
 
 
 // ===== REVEAL =====
 
-function startRevealSequence() {
-    var overlay = document.getElementById('reveal-overlay');
-    var message = document.getElementById('reveal-message');
+// Prepare reveal content so it's visible during the slide transition
+function prepareRevealContent() {
+    var detail = document.getElementById('route-detail');
+    detail.classList.add('visible');
 
-    // Phase 1: Overlay fades out
+    // Show the static "It's a" line immediately, but keep glitch target empty
+    var matchTitle = document.getElementById('match-title');
+    matchTitle.classList.add('visible');
+}
+
+// Start the animated parts of the reveal (glitch decode, timeline, confetti)
+function startRevealAnimations(routeKey) {
+    var rk = routeKey || gachaRouteResult || 'a';
+
+    var target = document.getElementById('match-glitch-target');
+    var matchTitle = document.getElementById('match-title');
+
+    var matchClasses = ['t-neuebit', 't-editorial', 't-editorial', 't-neuebit', 't-neuebit', 'glitch-space', 't-montreal-italic', 't-montreal-italic'];
+
+    // Glitch decode only "match !!" on line 2
     setTimeout(function () {
-        overlay.classList.add('fade-out');
-    }, 800);
+        startGlitchDecode(function () {
+            // Show route timeline after glitch resolves
+            setTimeout(function () {
+                showRoute(rk);
+            }, 800);
+        }, 'match !!', '\u30DE\u30C3\u30C1', target, matchTitle, matchClasses);
+    }, 400);
+}
 
-    // Phase 2: Terminal text types out first
-    setTimeout(function () {
-        message.classList.add('visible');
-        var revealTextEl = document.getElementById('reveal-terminal-text');
-        var revealCursor = document.getElementById('reveal-cursor');
+// Legacy wrapper for direct calls
+function startRevealSequence(routeKey) {
+    prepareRevealContent();
+    startRevealAnimations(routeKey);
+}
 
-        if (revealTextEl) {
-            typeText(revealTextEl, REVEAL_TEXT, function () {
-                // Phase 3: When typing finishes → glitch decode 東京 → TOKYO
-                startGlitchDecode(function () {
-                    // Phase 4: After glitch resolves → confetti + gacha machine
-                    startConfetti();
-                    setTimeout(function () {
-                        initGacha();
-                    }, 1500);
-                });
-            }, revealCursor);
+
+// ===== PIXEL DISSOLVE =====
+
+function startPixelDissolve(onComplete) {
+    var canvas = document.getElementById('pixel-dissolve-canvas');
+    var ctx = canvas.getContext('2d');
+
+    // Size to viewport
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    canvas.width = vw;
+    canvas.height = vh;
+    canvas.classList.add('active');
+
+    // Grid configuration — large chunky squares like Monogrid reference
+    var SQUARE_SIZE = Math.max(40, Math.round(Math.min(vw, vh) / 10)); // ~10% of smallest dimension
+    var cols = Math.ceil(vw / SQUARE_SIZE);
+    var rows = Math.ceil(vh / SQUARE_SIZE);
+    var totalCells = cols * rows;
+
+    // Create all cell indices and shuffle them
+    var cellOrder = [];
+    for (var i = 0; i < totalCells; i++) {
+        cellOrder.push(i);
+    }
+    // Fisher-Yates shuffle
+    for (var i = cellOrder.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = cellOrder[i];
+        cellOrder[i] = cellOrder[j];
+        cellOrder[j] = temp;
+    }
+
+    // Filled state for each cell
+    var filled = new Array(totalCells).fill(false);
+
+    // Timing
+    var TOTAL_DURATION = 2200; // total dissolve time in ms
+    var BATCH_INTERVAL = 60;   // ms between batches
+    var totalBatches = Math.ceil(TOTAL_DURATION / BATCH_INTERVAL);
+    var cellsPerBatch = Math.max(1, Math.ceil(totalCells / totalBatches));
+
+    var currentIndex = 0;
+    var batchCount = 0;
+
+    function drawCell(cellIdx) {
+        var col = cellIdx % cols;
+        var row = Math.floor(cellIdx / cols);
+        var x = col * SQUARE_SIZE;
+        var y = row * SQUARE_SIZE;
+
+        ctx.fillStyle = '#FF2634';
+        ctx.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
+    }
+
+    function nextBatch() {
+        if (currentIndex >= totalCells) {
+            // Fill any remaining gaps (ensure full coverage)
+            ctx.fillStyle = '#FF2634';
+            ctx.fillRect(0, 0, vw, vh);
+
+            // Screen fully red — call onComplete, caller handles cleanup
+            if (onComplete) onComplete();
+            return;
         }
-    }, 2000);
+
+        // Draw this batch
+        var end = Math.min(currentIndex + cellsPerBatch, totalCells);
+
+        // Accelerate: more cells per batch as we progress
+        var progress = currentIndex / totalCells;
+        var accel = 1 + progress * 2; // starts 1x, ends 3x speed
+        var adjustedBatchSize = Math.ceil(cellsPerBatch * accel);
+        end = Math.min(currentIndex + adjustedBatchSize, totalCells);
+
+        for (var i = currentIndex; i < end; i++) {
+            var cellIdx = cellOrder[i];
+            filled[cellIdx] = true;
+            drawCell(cellIdx);
+        }
+        currentIndex = end;
+        batchCount++;
+
+        setTimeout(nextBatch, BATCH_INTERVAL);
+    }
+
+    // Start after a short pause
+    setTimeout(nextBatch, 200);
+}
+
+
+// ===== REVERSE PIXEL DISSOLVE (red → pink) =====
+
+function startReversePixelDissolve(onComplete) {
+    var canvas = document.getElementById('pixel-dissolve-canvas');
+    var ctx = canvas.getContext('2d');
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    canvas.width = vw;
+    canvas.height = vh;
+
+    // Start fully red
+    ctx.fillStyle = '#FF2634';
+    ctx.fillRect(0, 0, vw, vh);
+    canvas.classList.add('active');
+
+    // Grid — same chunky squares
+    var SQUARE_SIZE = Math.max(40, Math.round(Math.min(vw, vh) / 10));
+    var cols = Math.ceil(vw / SQUARE_SIZE);
+    var rows = Math.ceil(vh / SQUARE_SIZE);
+    var totalCells = cols * rows;
+
+    // Shuffle cell order
+    var cellOrder = [];
+    for (var i = 0; i < totalCells; i++) cellOrder.push(i);
+    for (var i = cellOrder.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = cellOrder[i];
+        cellOrder[i] = cellOrder[j];
+        cellOrder[j] = temp;
+    }
+
+    var TOTAL_DURATION = 2000;
+    var BATCH_INTERVAL = 60;
+    var totalBatches = Math.ceil(TOTAL_DURATION / BATCH_INTERVAL);
+    var cellsPerBatch = Math.max(1, Math.ceil(totalCells / totalBatches));
+    var currentIndex = 0;
+
+    function drawPinkCell(cellIdx) {
+        var col = cellIdx % cols;
+        var row = Math.floor(cellIdx / cols);
+        ctx.fillStyle = '#FFEDFA';
+        ctx.fillRect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+    }
+
+    function nextBatch() {
+        if (currentIndex >= totalCells) {
+            // Fully pink — remove canvas, call onComplete
+            canvas.classList.remove('active');
+            canvas.width = 0;
+            canvas.height = 0;
+            if (onComplete) onComplete();
+            return;
+        }
+
+        var progress = currentIndex / totalCells;
+        var accel = 1 + progress * 2;
+        var adjustedBatchSize = Math.ceil(cellsPerBatch * accel);
+        var end = Math.min(currentIndex + adjustedBatchSize, totalCells);
+
+        for (var i = currentIndex; i < end; i++) {
+            drawPinkCell(cellOrder[i]);
+        }
+        currentIndex = end;
+
+        setTimeout(nextBatch, BATCH_INTERVAL);
+    }
+
+    setTimeout(nextBatch, 200);
 }
 
 
