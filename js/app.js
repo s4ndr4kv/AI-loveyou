@@ -1485,18 +1485,21 @@ function showRoute(routeKey) {
             }, 400);
 
             // Show photos after a slightly longer pause
+            var photoCount = route.photos.length || 0;
             setTimeout(function () {
                 showTimelinePhotos(route, function () {
                     setTimeout(function () {
                         cta.classList.add('visible');
-                        // Show disclaimer after CTA appears
-                        setTimeout(function () {
-                            var disclaimer = document.querySelector('.reveal-disclaimer');
-                            if (disclaimer) disclaimer.classList.add('visible');
-                        }, 600);
                     }, 400);
                 });
             }, 600);
+
+            // Show disclaimer independently — timed after photos + CTA
+            var disclaimerDelay = 600 + 300 * (photoCount + 1) + 400 + 600 + 800;
+            setTimeout(function () {
+                var d = document.querySelector('.reveal-disclaimer');
+                if (d) d.classList.add('visible');
+            }, disclaimerDelay);
             return;
         }
 
