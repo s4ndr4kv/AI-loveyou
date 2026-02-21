@@ -139,6 +139,8 @@ function showScreen(screenId) {
     if (target) {
         target.classList.add('active');
         currentScreen = screenId;
+        // iOS Safari: restart GIF animations when screen becomes visible
+        restartGifs(target);
     }
 }
 
@@ -1632,6 +1634,9 @@ function prepareRevealContent() {
     // Show the static "It's a" line immediately, but keep glitch target empty
     var matchTitle = document.getElementById('match-title');
     matchTitle.classList.add('visible');
+
+    // iOS: restart GIFs in the reveal screen (3dheart, heart, etc.)
+    restartGifs(document.getElementById('reveal-screen'));
 }
 
 // Start the animated parts of the reveal (glitch decode, timeline, confetti)
@@ -1900,11 +1905,33 @@ function randomRange(min, max) {
 }
 
 
+// ===== iOS GIF FIX =====
+// iOS Safari freezes GIF animations on images that load while hidden
+// (opacity:0 / visibility:hidden). Re-setting the src forces a replay.
+
+function restartGifs(container) {
+    var root = container || document;
+    var imgs = root.querySelectorAll('img');
+    for (var i = 0; i < imgs.length; i++) {
+        var img = imgs[i];
+        var src = img.getAttribute('src');
+        if (src && /\.gif(\?|$)/i.test(src)) {
+            // Append or update a cache-bust param to force Safari to re-decode
+            var base = src.replace(/[?&]_gif=\d+/, '');
+            var sep = base.indexOf('?') === -1 ? '?' : '&';
+            img.src = base + sep + '_gif=' + Date.now();
+        }
+    }
+}
+
 // ===== INIT =====
 
 document.addEventListener('DOMContentLoaded', function () {
     // Start on intro screen
     showScreen('intro');
+
+    // Restart GIFs on the intro screen (visible at load)
+    restartGifs(document.getElementById('intro-screen'));
 
     // === ASCII art: individual char float + density-based opacity + random glow ===
     var asciiEl = document.querySelector('.intro-ascii-bg');
