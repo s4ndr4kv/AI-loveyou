@@ -1467,15 +1467,31 @@ function showRoute(routeKey) {
 
     function animateToNextStop() {
         if (currentStop >= stopEls.length) {
-            // All cities done — show photos
+            // All cities done — show scroll indicator, then photos
+            var scrollIndicator = document.getElementById('scroll-indicator');
+            var revealScreen = document.getElementById('reveal-screen');
+
+            setTimeout(function () {
+                scrollIndicator.classList.add('visible');
+
+                // Hide scroll indicator only when user scrolls
+                function onScroll() {
+                    if (revealScreen.scrollTop > 30) {
+                        scrollIndicator.classList.add('hidden');
+                        revealScreen.removeEventListener('scroll', onScroll);
+                    }
+                }
+                revealScreen.addEventListener('scroll', onScroll);
+            }, 400);
+
+            // Show photos after a slightly longer pause
             setTimeout(function () {
                 showTimelinePhotos(route, function () {
-                    // After photos fade in, show CTA (heart + text centered)
                     setTimeout(function () {
                         cta.classList.add('visible');
                     }, 400);
                 });
-            }, 400);
+            }, 600);
             return;
         }
 
