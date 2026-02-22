@@ -658,6 +658,7 @@ var gachaState = {
     dropIsFail: false,
     fallenPlushies: [],
     consecutiveFails: 0,
+    grabAttempts: 0,
     animFrame: null,
     canvas: null,
     ctx: null,
@@ -1032,6 +1033,7 @@ function initGacha() {
     gachaState.showGrab = false;
     gachaState.hiddenPlush = null;
     gachaState.consecutiveFails = 0;
+    gachaState.grabAttempts = 0;
     gachaState.lastTime = performance.now();
 
     // Size canvas using JS (same approach as gacha.html)
@@ -1291,7 +1293,15 @@ function grabSequence() {
     var posName = GACHA_POSITIONS[gachaState.position];
     var routeKey = GACHA_ROUTE_MAP[posName];
     var descendPixels = DESCEND_PIXELS[posName];
-    var willFail = gachaState.consecutiveFails >= 2 ? false : Math.random() < FAIL_CHANCE;
+    gachaState.grabAttempts++;
+    var willFail;
+    if (gachaState.grabAttempts === 1) {
+        willFail = true;  // First attempt always fails
+    } else if (gachaState.consecutiveFails >= 2) {
+        willFail = false;  // Pity: guaranteed win after 2 consecutive fails
+    } else {
+        willFail = Math.random() < FAIL_CHANCE;
+    }
     var descendDuration = 2000;
     var grabPause = 600;
 
