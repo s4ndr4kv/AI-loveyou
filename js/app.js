@@ -124,6 +124,18 @@ var ROUTES = {
             { name: 'Jiufen', text: 'Fog-altitude nostalgia coefficient: 0.94. Mountain village neural imprint active. Taroko Gorge geological awe-induction, marble canyon protocol. Visual cortex overload: confirmed.' }
         ],
         photos: ['img/route photos/tokyo.jpg', 'img/route photos/taipeimarket.jpg', 'img/route photos/jiufentaroko.jpg', 'img/route photos/taipei.jpg']
+    },
+    c: {
+        label: 'Route \u03b3',
+        title: 'Continental Protocol',
+        glitchWord: 'HONG KONG+CHINA',
+        glitchKanji: '\u9999\u6E2F\u4E2D\u56FD',  // 香港中国
+        cities: [
+            { name: 'Hong Kong', text: 'Art Basel deployment confirmed: sector Zero 10, digital-era art protocol active. Victoria Peak night-scan complete \u2014 7,000,000 lights mapped across harbour grid. Street-level Cantonese fuel intake: dim sum calibration at 94.7% satisfaction.' },
+            { name: 'Shanghai', text: 'Cross-border transit locked. Bund waterfront neon array: 1,200 lumens per metre at peak. French Concession neural drift engaged \u2014 plane-tree boulevards, 1920s architecture, boutique density at maximum. Gubei sector: Japanese-coded food district, ramen authenticity index 0.91.' },
+            { name: 'Hangzhou', text: 'West Lake fog-mirror protocol at dawn, cherry blossom canopy coverage 83%. Longjing tea terraces at 200m elevation \u2014 leaf-to-cup latency under 4 hours. Su Causeway slow-walk mode: heart rate normalised, serenity coefficient 0.97.' }
+        ],
+        photos: []
     }
 };
 
@@ -632,7 +644,7 @@ function startGlitchDecode(onComplete, word, kanji, targetEl, containerEl, custo
 
 // Positions ordered geographically: right → center → left
 var GACHA_POSITIONS = ['back', 'front', 'mid'];
-var GACHA_ROUTE_MAP = { back: 'a', front: 'a', mid: 'b' };
+var GACHA_ROUTE_MAP = { back: 'c', front: 'c', mid: 'c' };
 
 var gachaState = {
     position: 0,        // 0=back, 1=mid, 2=front
