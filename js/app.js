@@ -5,6 +5,8 @@ let currentQuestion = 0;
 let answers = [];
 let typingTimeout = null;
 let gachaRouteResult = null; // stores 'a' or 'b' after gacha win
+let typeTextAborted = false; // flag to hard-abort typeText without completing
+let routeGeneration = 0; // increments each showRoute call to invalidate stale timers
 
 // ===== CONSTANTS =====
 
@@ -181,6 +183,12 @@ function typeText(element, text, onComplete, cursorEl) {
 
     function typeChar() {
         if (finished) return;
+        // Hard abort: stop typing without completing
+        if (typeTextAborted) {
+            finished = true;
+            clearTimeout(typingTimeout);
+            return;
+        }
         if (index < text.length) {
             var char = text[index];
             textNode.textContent += char;
@@ -1451,6 +1459,8 @@ function grabSequence() {
 
 function showRoute(routeKey) {
     var route = ROUTES[routeKey];
+    routeGeneration++;
+    var myGeneration = routeGeneration;
 
     var stopsContainer = document.getElementById('timeline-stops');
     var timelineLine = document.getElementById('timeline-line');
@@ -1491,12 +1501,14 @@ function showRoute(routeKey) {
     var currentStop = 0;
 
     function animateToNextStop() {
+        if (myGeneration !== routeGeneration) return;
         if (currentStop >= stopEls.length) {
             // All cities done — show scroll indicator, then photos
             var scrollIndicator = document.getElementById('scroll-indicator');
             var revealScreen = document.getElementById('reveal-screen');
 
             setTimeout(function () {
+                if (myGeneration !== routeGeneration) return;
                 scrollIndicator.classList.add('visible');
 
                 // Hide scroll indicator only when user scrolls
@@ -1512,8 +1524,10 @@ function showRoute(routeKey) {
             // Show photos after a slightly longer pause
             var photoCount = route.photos.length || 0;
             setTimeout(function () {
+                if (myGeneration !== routeGeneration) return;
                 showTimelinePhotos(route, function () {
                     setTimeout(function () {
+                        if (myGeneration !== routeGeneration) return;
                         cta.classList.add('visible');
                     }, 400);
                 });
@@ -1522,6 +1536,7 @@ function showRoute(routeKey) {
             // Show disclaimer independently — timed after photos + CTA
             var disclaimerDelay = 600 + 300 * (photoCount + 1) + 400 + 600 + 800;
             setTimeout(function () {
+                if (myGeneration !== routeGeneration) return;
                 var d = document.querySelector('.reveal-disclaimer');
                 if (d) d.classList.add('visible');
             }, disclaimerDelay);
@@ -1542,6 +1557,7 @@ function showRoute(routeKey) {
         var growStart = performance.now();
 
         function growLine() {
+            if (myGeneration !== routeGeneration) return;
             var elapsed = performance.now() - growStart;
             var t = Math.min(elapsed / LINE_GROW_DURATION, 1);
             t = 1 - Math.pow(1 - t, 2);
@@ -1555,12 +1571,14 @@ function showRoute(routeKey) {
                 el.dot.classList.add('visible');
 
                 setTimeout(function () {
+                    if (myGeneration !== routeGeneration) return;
                     var cursor = document.createElement('span');
                     cursor.className = 'timeline-cursor';
                     cursor.textContent = '_';
                     el.textEl.appendChild(cursor);
 
                     typeText(el.textEl, el.text, function () {
+                        if (myGeneration !== routeGeneration) return;
                         cursor.remove();
                         currentStop++;
                         setTimeout(animateToNextStop, 300);
@@ -1573,7 +1591,10 @@ function showRoute(routeKey) {
     }
 
     // Start after a short delay
-    setTimeout(animateToNextStop, 500);
+    setTimeout(function () {
+        if (myGeneration !== routeGeneration) return;
+        animateToNextStop();
+    }, 500);
 }
 
 function showTimelinePhotos(route, onComplete) {
@@ -1669,6 +1690,176 @@ function prepareRevealContent() {
 }
 
 // Start the animated parts of the reveal (glitch decode, timeline, confetti)
+// ===== HACK TAKEOVER SEQUENCE =====
+
+// Corrupt visible text in an element with glitch characters
+function corruptText(element, duration, onComplete) {
+    var textNodes = [];
+    // Collect all text content from child nodes
+    var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    var node;
+    while (node = walker.nextNode()) {
+        if (node.textContent.trim().length > 0) {
+            textNodes.push(node);
+        }
+    }
+
+    var interval = setInterval(function () {
+        for (var i = 0; i < textNodes.length; i++) {
+            var txt = textNodes[i].textContent;
+            var corrupted = '';
+            for (var j = 0; j < txt.length; j++) {
+                if (txt[j] === ' ' || txt[j] === '\n') {
+                    corrupted += txt[j];
+                } else if (Math.random() < 0.4) {
+                    corrupted += GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+                } else {
+                    corrupted += txt[j];
+                }
+            }
+            textNodes[i].textContent = corrupted;
+        }
+    }, 60);
+
+    setTimeout(function () {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+    }, duration);
+}
+
+// Type hack terminal lines one by one
+function typeHackLines(lines, container, onComplete) {
+    container.innerHTML = '';
+    var lineIndex = 0;
+
+    function showNextLine() {
+        if (lineIndex >= lines.length) {
+            if (onComplete) setTimeout(onComplete, 800);
+            return;
+        }
+
+        var lineEl = document.createElement('div');
+        lineEl.className = 'hack-line';
+        var prefix = document.createElement('span');
+        prefix.className = 'hack-prefix';
+        prefix.textContent = '> ';
+        lineEl.appendChild(prefix);
+
+        var textSpan = document.createElement('span');
+        lineEl.appendChild(textSpan);
+
+        var cursor = document.createElement('span');
+        cursor.className = 'hack-cursor';
+        cursor.textContent = '_';
+        lineEl.appendChild(cursor);
+
+        container.appendChild(lineEl);
+        lineEl.classList.add('visible');
+
+        var text = lines[lineIndex];
+        var charIdx = 0;
+
+        function typeChar() {
+            if (charIdx < text.length) {
+                textSpan.textContent += text[charIdx];
+                charIdx++;
+                var delay = 20 + Math.random() * 30;
+                if (text[charIdx - 1] === '.' || text[charIdx - 1] === ':') delay += 100;
+                setTimeout(typeChar, delay);
+            } else {
+                cursor.remove();
+                lineIndex++;
+                setTimeout(showNextLine, 400);
+            }
+        }
+
+        typeChar();
+    }
+
+    showNextLine();
+}
+
+// Main hack sequence: fake route → corruption → terminal → real route
+function showFakeRouteThenHack() {
+    var fakeKey = Math.random() < 0.5 ? 'a' : 'b';
+    var fakeRoute = ROUTES[fakeKey];
+
+    // Reset abort flag and start fake route
+    typeTextAborted = false;
+    showRoute(fakeKey);
+
+    // After first city starts typing (~3.5s: 500ms delay + 600ms line grow + 150ms + ~2s typing)
+    setTimeout(function () {
+        // Abort any ongoing typeText (stops mid-word, doesn't complete)
+        typeTextAborted = true;
+
+        var revealContainer = document.querySelector('.reveal-container');
+
+        // Start corruption
+        revealContainer.classList.add('screen-glitching');
+        corruptText(revealContainer, 1500, function () {
+            // Stop glitch animation
+            revealContainer.classList.remove('screen-glitching');
+
+            // Show hack overlay
+            var overlay = document.getElementById('hack-overlay');
+            overlay.classList.add('active');
+
+            var terminal = document.getElementById('hack-terminal');
+            var fakeLabel = fakeRoute.label; // "Route α" or "Route β"
+
+            var hackLines = [
+                'ROUTE PROTOCOL INTERRUPTED',
+                'external override detected...',
+                'agent_id: botto.exe',
+                'injecting coordinates...',
+                '22.319\u00b0N, 114.169\u00b0E \u2192 HONG KONG',
+                '31.230\u00b0N, 121.474\u00b0E \u2192 SHANGHAI',
+                '30.274\u00b0N, 120.155\u00b0E \u2192 HANGZHOU',
+                fakeLabel + ' [TERMINATED]',
+                'loading Route \u03b3 :: Continental Protocol',
+                '\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 ACCESS GRANTED'
+            ];
+
+            typeHackLines(hackLines, terminal, function () {
+                // Fade out hack overlay
+                overlay.classList.remove('active');
+
+                setTimeout(function () {
+                    terminal.innerHTML = '';
+
+                    // Reset the reveal screen content for real route
+                    var stopsContainer = document.getElementById('timeline-stops');
+                    var timelineLine = document.getElementById('timeline-line');
+                    stopsContainer.innerHTML = '';
+                    timelineLine.style.height = '0px';
+
+                    // Reset photo container
+                    var photosEl = document.getElementById('route-detail-photos');
+                    if (photosEl) photosEl.innerHTML = '';
+
+                    // Reset disclaimer and CTA
+                    var d = document.querySelector('.reveal-disclaimer');
+                    if (d) d.classList.remove('visible');
+                    var cta = document.getElementById('timeline-cta');
+                    if (cta) cta.classList.remove('visible');
+
+                    // Reset scroll indicator
+                    var scrollInd = document.getElementById('scroll-indicator');
+                    if (scrollInd) {
+                        scrollInd.classList.remove('visible');
+                        scrollInd.classList.remove('hidden');
+                    }
+
+                    // Re-enable typing and show the real route
+                    typeTextAborted = false;
+                    showRoute('c');
+                }, 500);
+            });
+        });
+    }, 3500);
+}
+
 function startRevealAnimations(routeKey) {
     var rk = routeKey || gachaRouteResult || 'a';
 
@@ -1680,9 +1871,14 @@ function startRevealAnimations(routeKey) {
     // Glitch decode only "match !!" on line 2
     setTimeout(function () {
         startGlitchDecode(function () {
-            // Show route timeline after glitch resolves
             setTimeout(function () {
-                showRoute(rk);
+                if (rk === 'c') {
+                    // Route γ: fake route first, then hack takeover
+                    showFakeRouteThenHack();
+                } else {
+                    // Normal route
+                    showRoute(rk);
+                }
             }, 800);
         }, 'match !!', '\u30DE\u30C3\u30C1', target, matchTitle, matchClasses);
     }, 400);

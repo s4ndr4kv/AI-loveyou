@@ -911,6 +911,74 @@ button {
     overflow-x: hidden;
 }
 
+/* ===== HACK OVERLAY ===== */
+
+.hack-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+
+.hack-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.hack-terminal {
+    width: 100%;
+    max-width: 520px;
+    padding: var(--spacing-md);
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: clamp(0.75rem, 2.2vw, 0.88rem);
+    line-height: 1.8;
+    color: var(--color-red);
+}
+
+.hack-line {
+    opacity: 0;
+    white-space: pre-wrap;
+    transition: opacity 0.15s ease;
+}
+
+.hack-line.visible {
+    opacity: 1;
+}
+
+.hack-prefix {
+    color: rgba(255, 38, 52, 0.4);
+}
+
+.hack-cursor {
+    display: inline;
+    color: var(--color-red);
+    animation: blink-cursor 0.8s step-end infinite;
+}
+
+/* Screen corruption effect */
+@keyframes screenGlitch {
+    0%   { opacity: 1; transform: none; }
+    10%  { opacity: 0.6; transform: skewX(-3deg) translateX(-2px); }
+    20%  { opacity: 1; transform: skewX(2deg); }
+    30%  { opacity: 0.4; transform: translateY(1px); }
+    40%  { opacity: 1; transform: none; }
+    50%  { opacity: 0.7; transform: skewX(-1deg) translateX(1px); }
+    60%  { opacity: 1; transform: none; }
+    80%  { opacity: 0.5; transform: skewX(2deg); }
+    100% { opacity: 1; transform: none; }
+}
+
+.screen-glitching {
+    animation: screenGlitch 0.2s steps(2) infinite;
+}
+
 #confetti-canvas {
     position: fixed;
     inset: 0;
